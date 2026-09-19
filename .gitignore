@@ -1,0 +1,13 @@
+# Keil MDK build output
+program/FCM4E1553 Ethercat/MDK-ARM/N32G455/
+
+# Keil per-user workspace settings
+*.uvguix.*
+
+# Editor and operating-system metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
