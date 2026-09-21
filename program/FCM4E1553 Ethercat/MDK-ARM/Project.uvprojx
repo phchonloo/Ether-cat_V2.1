@@ -415,6 +415,11 @@
               <FilePath>..\User\main.c</FilePath>
             </File>
             <File>
+              <FileName>EthercatMotorControl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\EthercatMotorControl.c</FilePath>
+            </File>
+            <File>
               <FileName>Timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Timer.c</FilePath>

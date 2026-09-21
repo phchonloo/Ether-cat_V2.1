@@ -1,10 +1,16 @@
 #include "mcuinit.h"
+#include "EthercatMotorControl.h"
+#include "SciInit.h"
 
 static void eeprom_self_test_report(void);
+static void motor_control_irq_priority_config(void);
+static void application_init_error_loop(void);
 
 int main(void)
 {
     uint8_t hw_init_result;
+    uint16_t cia402_result;
+    uint16_t mapping_result;
 
     systick_config();
     rcu_config();
@@ -13,7 +19,6 @@ int main(void)
     hw_init_result = HW_Init();
 
     GpioIni();
-
     com_gpio_init();
     com_usart_init();
 
@@ -23,45 +28,51 @@ int main(void)
     modbus_init(MODBUS_DEFAULT_SLAVE_ADDR,
                 MODBUS_DEFAULT_BAUDRATE);
 
-    /* DMA和ADC就绪后，pwm_config()启动TIM8并开始周期采样。 */
     dma_config();
     adc_config();
 
-    /* PWM启动后，每个完整周期触发一次ADC常规序列和DMA搬运。 */
-    pwm_config();
-    UpPwm(0U, 0U, 0U, 0U);
-
+    /* Initialise all motor data before TIM8 can enter MainFunt(). */
     DataIni();
     shuzu_initial();
     IniSaveFunc();
 
     if (hw_init_result != 0U)
     {
-        while (1)
-        {
-            modbus_process();
-            //SciReceive();
-            eeprom_console_process();
-        }
+        application_init_error_loop();
     }
 
     (void)MainInit();
-    (void)CiA402_Init();
 
-    (void)APPL_GenerateMapping(&nPdInputSize,
-                               &nPdOutputSize);
+    cia402_result = CiA402_Init();
+    if (cia402_result != ALSTATUSCODE_NOERROR)
+    {
+        application_init_error_loop();
+    }
+
+    EthercatMotorControl_Init();
+    mapping_result = APPL_GenerateMapping(&nPdInputSize,
+                                          &nPdOutputSize);
+    if (mapping_result != ALSTATUSCODE_NOERROR)
+    {
+        application_init_error_loop();
+    }
+
+    /* Start the motor loop only after protocol and motor state are safe. */
+    pwm_config();
+    UpPwm(0U, 0U, 0U, 0U);
+    motor_control_irq_priority_config();
 
     bRunApplication = TRUE;
     while (bRunApplication == TRUE)
     {
-        //SciReceive();
-        MainFunt();
         MainLoop();
+        EthercatMotorControl_Update();
         modbus_process();
         eeprom_console_process();
     }
 
-    //UpPwm(563U, 1125U, 1688U, 2250U);
+    EthercatMotorControl_Update();
+    UpPwm(0U, 0U, 0U, 0U);
     CiA402_DeallocateAxis();
     HW_Release();
 
@@ -70,7 +81,6 @@ int main(void)
 
 void rcu_config(void)
 {
-    /* N32各外设驱动自行开启外设时钟，这里同步系统时钟变量。 */
     SystemCoreClockUpdate();
 }
 
@@ -78,12 +88,29 @@ void led_spark(void)
 {
 }
 
-/**
- * @brief 执行24C02自检，并通过USART1输出自检结果。
- *
- * EEPROM驱动会依次备份测试区域、写入测试数据、校验数据并恢复原数据。
- * 自检使用的状态和提示字符串均放在本函数内，避免主函数保存EEPROM状态。
- */
+static void motor_control_irq_priority_config(void)
+{
+    NVIC_InitType nvic_init;
+
+    /* EtherCAT priority 1 may pre-empt the 16 kHz motor ISR at priority 2. */
+    nvic_init.NVIC_IRQChannel = TIM8_UP_IRQn;
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 2U;
+    nvic_init.NVIC_IRQChannelSubPriority = 0U;
+    nvic_init.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&nvic_init);
+}
+
+static void application_init_error_loop(void)
+{
+    UpPwm(0U, 0U, 0U, 0U);
+    for (;;)
+    {
+        MainLoop();
+        modbus_process();
+        eeprom_console_process();
+    }
+}
+
 static void eeprom_self_test_report(void)
 {
     eeprom_status_t status;
@@ -96,27 +123,21 @@ static void eeprom_self_test_report(void)
         "[24C02] TEST FAIL, STATUS=";
     static const uint8_t line_end[] = "\r\n";
 
-    /* 访问EEPROM前先通知串口调试终端。 */
-    (void)uart_write(
-        start_text,
-        (uint16_t)(sizeof(start_text) - 1U));
+    (void)uart_write(start_text,
+                     (uint16_t)(sizeof(start_text) - 1U));
 
     status = eeprom_test();
     if (status == BSP_24C02_OK)
     {
-        (void)uart_write(
-            pass_text,
-            (uint16_t)(sizeof(pass_text) - 1U));
+        (void)uart_write(pass_text,
+                         (uint16_t)(sizeof(pass_text) - 1U));
         return;
     }
 
-    /* 当前错误码范围为0～8，可直接转换成一位十进制字符。 */
     status_code = (uint8_t)('0' + (uint8_t)status);
-    (void)uart_write(
-        fail_text,
-        (uint16_t)(sizeof(fail_text) - 1U));
+    (void)uart_write(fail_text,
+                     (uint16_t)(sizeof(fail_text) - 1U));
     (void)uart_write(&status_code, 1U);
-    (void)uart_write(
-        line_end,
-        (uint16_t)(sizeof(line_end) - 1U));
+    (void)uart_write(line_end,
+                     (uint16_t)(sizeof(line_end) - 1U));
 }

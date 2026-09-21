@@ -994,7 +994,7 @@
                   <SubItem>
                     <Name>SubIndex 001</Name>
                     <Info>
-                      <DefaultData>00981100</DefaultData>
+                      <DefaultData>00983100</DefaultData>
                     </Info>
                   </SubItem>
                 </Info>
@@ -1014,7 +1014,7 @@
                   <SubItem>
                     <Name>SubIndex 001</Name>
                     <Info>
-                      <DefaultData>00981100</DefaultData>
+                      <DefaultData>00983100</DefaultData>
                     </Info>
                   </SubItem>
                 </Info>
@@ -1027,7 +1027,7 @@
         <Fmmu>MBoxState</Fmmu>
         <Sm MinSize="#x24" MaxSize="#x100" DefaultSize="#x80" StartAddress="#x1000" ControlByte="#x26" Enable="1">MBoxOut</Sm>
         <Sm MinSize="#x24" MaxSize="#x100" DefaultSize="#x80" StartAddress="#x1080" ControlByte="#x22" Enable="1">MBoxIn</Sm>
-        <Sm DefaultSize="12" StartAddress="#x1100" ControlByte="#x64" Enable="1">Outputs</Sm>
+        <Sm DefaultSize="8" StartAddress="#x1100" ControlByte="#x64" Enable="1">Outputs</Sm>
         <Sm DefaultSize="12" StartAddress="#x1400" ControlByte="#x20" Enable="1">Inputs</Sm>
         <Mailbox DataLinkLayer="true">
           <CoE SdoInfo="true" PdoAssign="true" PdoConfig="true" CompleteAccess="true" SegmentedSdo="true"/>
@@ -1049,7 +1049,7 @@
         <Slots SlotPdoIncrement="16" SlotIndexIncrement="#x800">
           <Slot MinInstances="1" MaxInstances="1">
             <Name>Axis 0</Name>
-            <ModuleIdent Default="1">#x119800</ModuleIdent>
+            <ModuleIdent Default="1">#x319800</ModuleIdent>
           </Slot>
         </Slots>
         <Eeprom>
@@ -1087,7 +1087,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>TargetVelocity</Name>
-            <Comment>Signed target velocity in microsteps/second</Comment>
+            <Comment>Signed target velocity in rpm, limited to +/-30 rpm by firmware</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1128,7 +1128,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>ActualVelocity</Name>
-            <Comment>Open-loop estimated velocity in microsteps/second, object 0x606C:0</Comment>
+            <Comment>Estimated actual velocity in rpm, object 0x606C:0</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1767,8 +1767,8 @@
         </Profile>
       </Module>
       <Module>
-        <Type ModuleIdent="#x319800">PV,HM,CSV - axis</Type>
-        <Name>Velocity modes PV/HM/CSV</Name>
+        <Type ModuleIdent="#x319800">CSV - axis</Type>
+        <Name>Cyclic synchronous velocity axis</Name>
         <RxPdo Fixed="true" Sm="2">
           <Index DependOnSlot="true">#x1602</Index>
           <Name>Outputs</Name>
@@ -1785,7 +1785,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>TargetVelocity</Name>
-            <Comment>Signed target velocity in microsteps/second</Comment>
+            <Comment>Signed target velocity in rpm, limited to +/-30 rpm by firmware</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1819,7 +1819,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>Actual Velocity</Name>
-            <Comment>Open-loop estimated velocity in microsteps/second</Comment>
+            <Comment>Estimated actual velocity in rpm</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -2014,7 +2014,7 @@
               </Object>
               <Object>
                 <Index DependOnSlot="true">#x6060</Index>
-                <Name>Modes of operation (3=PV, 6=HM, 9=CSV)</Name>
+                <Name>Modes of operation (9=CSV)</Name>
                 <Type>SINT</Type>
                 <BitSize>8</BitSize>
                 <Info>
@@ -2113,7 +2113,7 @@
                 <Type>UDINT</Type>
                 <BitSize>32</BitSize>
                 <Info>
-                  <DefaultData>24010000</DefaultData>
+                  <DefaultData>00010000</DefaultData>
                 </Info>
                 <Flags>
                   <Access>ro</Access>
