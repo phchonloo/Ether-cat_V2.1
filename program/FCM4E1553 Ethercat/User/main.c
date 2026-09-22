@@ -92,10 +92,15 @@ static void motor_control_irq_priority_config(void)
 {
     NVIC_InitType nvic_init;
 
-    /* EtherCAT priority 1 may pre-empt the 16 kHz motor ISR at priority 2. */
+    /*
+     * The 16 kHz phase/current loop must never be pre-empted by EtherCAT.
+     * A delayed TIM8 update is a lost phase step because the timer update
+     * flag cannot count more than one pending event.  Keep TIM8 at priority
+     * 0, as required by the BASEPRI-based EtherCAT critical sections.
+     */
     nvic_init.NVIC_IRQChannel = TIM8_UP_IRQn;
-    nvic_init.NVIC_IRQChannelPreemptionPriority = 2U;
-    nvic_init.NVIC_IRQChannelSubPriority = 0U;
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 0U;
+    nvic_init.NVIC_IRQChannelSubPriority = 1U;
     nvic_init.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic_init);
 }

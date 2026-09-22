@@ -16,7 +16,7 @@
     <Devices>
       <Device Physics="YY">
         <Type ProductCode="#x15530111" RevisionNo="#x3">FCM4E1553_CiA402_Drive</Type>
-        <Name>FCM4E1553_CiA402_Drive</Name>
+        <Name>FCM4E1553_CiA402_MultiMode_Drive</Name>
         <Info>
           <StateMachine>
             <Timeout>
@@ -844,7 +844,7 @@
                   <SubItem>
                     <Name>SubIndex 001</Name>
                     <Info>
-                      <DefaultData>0216</DefaultData>
+                      <DefaultData>0016</DefaultData>
                     </Info>
                   </SubItem>
                 </Info>
@@ -864,7 +864,7 @@
                   <SubItem>
                     <Name>SubIndex 001</Name>
                     <Info>
-                      <DefaultData>021A</DefaultData>
+                      <DefaultData>001A</DefaultData>
                     </Info>
                   </SubItem>
                 </Info>
@@ -994,7 +994,7 @@
                   <SubItem>
                     <Name>SubIndex 001</Name>
                     <Info>
-                      <DefaultData>00983100</DefaultData>
+                      <DefaultData>00981100</DefaultData>
                     </Info>
                   </SubItem>
                 </Info>
@@ -1014,7 +1014,7 @@
                   <SubItem>
                     <Name>SubIndex 001</Name>
                     <Info>
-                      <DefaultData>00983100</DefaultData>
+                      <DefaultData>00981100</DefaultData>
                     </Info>
                   </SubItem>
                 </Info>
@@ -1027,7 +1027,7 @@
         <Fmmu>MBoxState</Fmmu>
         <Sm MinSize="#x24" MaxSize="#x100" DefaultSize="#x80" StartAddress="#x1000" ControlByte="#x26" Enable="1">MBoxOut</Sm>
         <Sm MinSize="#x24" MaxSize="#x100" DefaultSize="#x80" StartAddress="#x1080" ControlByte="#x22" Enable="1">MBoxIn</Sm>
-        <Sm DefaultSize="8" StartAddress="#x1100" ControlByte="#x64" Enable="1">Outputs</Sm>
+        <Sm DefaultSize="12" StartAddress="#x1100" ControlByte="#x64" Enable="1">Outputs</Sm>
         <Sm DefaultSize="12" StartAddress="#x1400" ControlByte="#x20" Enable="1">Inputs</Sm>
         <Mailbox DataLinkLayer="true">
           <CoE SdoInfo="true" PdoAssign="true" PdoConfig="true" CompleteAccess="true" SegmentedSdo="true"/>
@@ -1049,7 +1049,7 @@
         <Slots SlotPdoIncrement="16" SlotIndexIncrement="#x800">
           <Slot MinInstances="1" MaxInstances="1">
             <Name>Axis 0</Name>
-            <ModuleIdent Default="1">#x319800</ModuleIdent>
+            <ModuleIdent Default="1">#x119800</ModuleIdent>
           </Slot>
         </Slots>
         <Eeprom>
@@ -1061,9 +1061,9 @@
     </Devices>
     <Modules>
       <Module>
-        <Type ModuleIdent="#x119800">PP,PV,HM,CSP,CSV - axis</Type>
-        <Name>Dynamic PP/PV/HM/CSP/CSV axis</Name>
-        <RxPdo Fixed="false" Sm="2">
+        <Type ModuleIdent="#x119800">PP,PV,CSP,CSV - axis</Type>
+        <Name>Dynamic PP/PV/CSP/CSV axis</Name>
+        <RxPdo Fixed="true" Sm="2">
           <Index DependOnSlot="true">#x1600</Index>
           <Name>Outputs</Name>
           <Entry>
@@ -1079,7 +1079,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>TargetPosition</Name>
-            <Comment>Signed target position in microsteps, object 0x607A:0</Comment>
+            <Comment>Signed target position in active motor microsteps; used by PP and CSP</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1087,7 +1087,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>TargetVelocity</Name>
-            <Comment>Signed target velocity in rpm, limited to +/-30 rpm by firmware</Comment>
+            <Comment>PV/CSV target velocity, or PP velocity limit; signed rpm, firmware limit +/-100</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1095,7 +1095,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>8</BitLen>
             <Name>ModeOfOperation</Name>
-            <Comment>1=PP, 3=PV, 6=HM, 8=CSP, 9=CSV, object 0x6060:0</Comment>
+            <Comment>Dynamic selection: 1=PP, 3=PV, 8=CSP, 9=CSV; unsupported values stop the motor</Comment>
             <DataType>SINT</DataType>
           </Entry>
           <Entry>
@@ -1104,7 +1104,7 @@
             <BitLen>8</BitLen>
           </Entry>
         </RxPdo>
-        <TxPdo Fixed="false" Sm="3">
+        <TxPdo Fixed="true" Sm="3">
           <Index DependOnSlot="true">#x1a00</Index>
           <Name>Inputs</Name>
           <Entry>
@@ -1120,7 +1120,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>ActualPosition</Name>
-            <Comment>Open-loop estimated position in microsteps, object 0x6064:0</Comment>
+            <Comment>Open-loop estimated position in active motor microsteps, object 0x6064:0</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1128,7 +1128,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>ActualVelocity</Name>
-            <Comment>Estimated actual velocity in rpm, object 0x606C:0</Comment>
+            <Comment>Applied motor velocity in rpm, object 0x606C:0</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1136,7 +1136,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>8</BitLen>
             <Name>ModeOfOperationDisplay</Name>
-            <Comment>object 0x6061:0</Comment>
+            <Comment>Accepted mode: 1=PP, 3=PV, 8=CSP, 9=CSV; 0=unsupported</Comment>
             <DataType>SINT</DataType>
           </Entry>
           <Entry>
@@ -1412,7 +1412,7 @@
                 <Type>UDINT</Type>
                 <BitSize>32</BitSize>
                 <Info>
-                  <DefaultData>A5010000</DefaultData>
+                  <DefaultData>85010000</DefaultData>
                 </Info>
                 <Flags>
                   <Access>ro</Access>
@@ -1424,8 +1424,8 @@
         </Profile>
       </Module>
       <Module>
-        <Type ModuleIdent="#x219800">PP,HM,CSP - axis</Type>
-        <Name>Position modes PP/HM/CSP</Name>
+        <Type ModuleIdent="#x219800">PP,CSP - axis</Type>
+        <Name>Position modes PP/CSP</Name>
         <RxPdo Fixed="false" Sm="2">
           <Index DependOnSlot="true">#x1601</Index>
           <Name>Outputs</Name>
@@ -1755,7 +1755,7 @@
                 <Type>UDINT</Type>
                 <BitSize>32</BitSize>
                 <Info>
-                  <DefaultData>A1000000</DefaultData>
+                  <DefaultData>81000000</DefaultData>
                 </Info>
                 <Flags>
                   <Access>ro</Access>
@@ -1785,7 +1785,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>TargetVelocity</Name>
-            <Comment>Signed target velocity in rpm, limited to +/-30 rpm by firmware</Comment>
+            <Comment>Signed target velocity in rpm, limited to +/-100 rpm by firmware</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>

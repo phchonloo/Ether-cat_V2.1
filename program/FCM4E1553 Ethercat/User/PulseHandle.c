@@ -47,12 +47,16 @@ void PulseFunction(void)
     if ((gEcatMotorEnabled != 0U) &&
         ((nAlStatus & STATE_MASK) == STATE_OP))
     {
-        BaseRpm = gEcatBaseRpmCommand;
+        BaseRpm = EthercatMotorControl_ApplyRamp(
+            gEcatBaseRpmCommand);
     }
     else
     {
+        EthercatMotorControl_EmergencyStop();
         BaseRpm = 0;
     }
+
+    EthercatMotorControl_FastUpdate(BaseRpm);
 }
 
 void RAMRUN WorkSelf(void)
