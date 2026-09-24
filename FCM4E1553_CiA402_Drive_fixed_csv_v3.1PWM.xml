@@ -1087,7 +1087,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>TargetVelocity</Name>
-            <Comment>PV/CSV target velocity; signed rpm, firmware limit +/-100</Comment>
+            <Comment>PV/CSV target velocity; signed rpm, firmware limit +/-1000</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1387,6 +1387,30 @@
                 <BitSize>32</BitSize>
                 <Info>
                   <DefaultData>64000000</DefaultData>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index DependOnSlot="true">#x6083</Index>
+                <Name>Profile acceleration</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info>
+                  <DefaultData>2C010000</DefaultData>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index DependOnSlot="true">#x6084</Index>
+                <Name>Profile deceleration</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info>
+                  <DefaultData>2C010000</DefaultData>
                 </Info>
                 <Flags>
                   <Access>rw</Access>
@@ -1748,6 +1772,30 @@
                 </Flags>
               </Object>
               <Object>
+                <Index DependOnSlot="true">#x6083</Index>
+                <Name>Profile acceleration</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info>
+                  <DefaultData>2C010000</DefaultData>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index DependOnSlot="true">#x6084</Index>
+                <Name>Profile deceleration</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info>
+                  <DefaultData>2C010000</DefaultData>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
+                </Flags>
+              </Object>
+              <Object>
                 <Index DependOnSlot="true">#x6085</Index>
                 <Name>Quick stop deceleration</Name>
                 <Type>UDINT</Type>
@@ -1809,7 +1857,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>TargetVelocity</Name>
-            <Comment>Signed target velocity in rpm, limited to +/-100 rpm by firmware</Comment>
+            <Comment>Signed target velocity in rpm, limited to +/-1000 rpm by firmware</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -2103,6 +2151,30 @@
                 <Flags>
                   <Access>rw</Access>
                   <PdoMapping>r</PdoMapping>
+                </Flags>
+              </Object>
+              <Object>
+                <Index DependOnSlot="true">#x6083</Index>
+                <Name>Profile acceleration</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info>
+                  <DefaultData>2C010000</DefaultData>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
+                </Flags>
+              </Object>
+              <Object>
+                <Index DependOnSlot="true">#x6084</Index>
+                <Name>Profile deceleration</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info>
+                  <DefaultData>2C010000</DefaultData>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
                 </Flags>
               </Object>
               <Object>

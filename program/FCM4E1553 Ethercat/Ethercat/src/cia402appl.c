@@ -450,6 +450,14 @@ UINT16 CiA402_Init(void)
                     pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objProfileVelocity;
                     break;
 
+                case 0x6083:
+                    pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objProfileAcceleration;
+                    break;
+
+                case 0x6084:
+                    pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objProfileDeceleration;
+                    break;
+
                 case 0x6085:
                     pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objQuickStopDeclaration;
                     break;

@@ -50,22 +50,35 @@ static s32 EthercatMotorControl_ClampRpm(s32 target_rpm)
     return target_rpm;
 }
 
-static s32 EthercatMotorControl_AbsRpmLimit(INT32 requested_limit)
+static s32 EthercatMotorControl_ProfileVelocityLimit(UINT32 requested_limit)
 {
-    signed long long limit;
-
-    limit = (signed long long)requested_limit;
-    if (limit < 0)
+    if (requested_limit == 0U)
     {
-        limit = -limit;
+        return ECAT_MOTOR_DEFAULT_PROFILE_RPM;
     }
 
-    if ((limit == 0) || (limit > ECAT_MOTOR_MAX_RPM))
+    if (requested_limit > (UINT32)ECAT_MOTOR_MAX_RPM)
     {
         return ECAT_MOTOR_MAX_RPM;
     }
 
-    return (s32)limit;
+    return (s32)requested_limit;
+}
+
+static s32 EthercatMotorControl_RampLimit(UINT32 requested_rate,
+                                          s32 default_rate)
+{
+    if (requested_rate == 0U)
+    {
+        return default_rate;
+    }
+
+    if (requested_rate > (UINT32)ECAT_MOTOR_MAX_RAMP_RPM_PER_SEC)
+    {
+        return ECAT_MOTOR_MAX_RAMP_RPM_PER_SEC;
+    }
+
+    return (s32)requested_rate;
 }
 
 static s32 EthercatMotorControl_IntegerSqrtLimit(
@@ -179,7 +192,9 @@ static s32 EthercatMotorControl_PositionCommand(INT32 target_position,
      */
     braking_speed_squared =
         (absolute_error * 120LL *
-         (signed long long)ECAT_MOTOR_DECEL_RPM_PER_SEC) /
+         (signed long long)EthercatMotorControl_RampLimit(
+             LocalAxes[0].Objects.objProfileDeceleration,
+             ECAT_MOTOR_DECEL_RPM_PER_SEC)) /
         (signed long long)resolution;
     braking_rpm = EthercatMotorControl_IntegerSqrtLimit(
         braking_speed_squared,
@@ -254,8 +269,8 @@ static s32 EthercatMotorControl_ProfilePosition(TCiA402Axis *axis,
         return 0;
     }
 
-    speed_limit = EthercatMotorControl_AbsRpmLimit(
-        (INT32)axis->Objects.objProfileVelocity);
+    speed_limit = EthercatMotorControl_ProfileVelocityLimit(
+        axis->Objects.objProfileVelocity);
 
     return EthercatMotorControl_PositionCommand(
         sProfilePositionTarget,
@@ -287,7 +302,8 @@ static s32 EthercatMotorControl_SelectCommand(TCiA402Axis *axis,
         return EthercatMotorControl_PositionCommand(
             axis->Objects.objTargetPosition,
             actual_position,
-            ECAT_MOTOR_MAX_RPM,
+            EthercatMotorControl_ProfileVelocityLimit(
+                axis->Objects.objProfileVelocity),
             target_reached,
             limited);
 
@@ -341,7 +357,12 @@ void EthercatMotorControl_Init(void)
     /* Keep CSV as the power-up mode while allowing the master to change 0x6060. */
     axis->Objects.objModesOfOperation = CYCLIC_SYNC_VELOCITY_MODE;
     axis->Objects.objModesOfOperationDisplay = CYCLIC_SYNC_VELOCITY_MODE;
-    axis->Objects.objProfileVelocity = (UINT32)ECAT_MOTOR_MAX_RPM;
+    axis->Objects.objProfileVelocity =
+        (UINT32)ECAT_MOTOR_DEFAULT_PROFILE_RPM;
+    axis->Objects.objProfileAcceleration =
+        (UINT32)ECAT_MOTOR_ACCEL_RPM_PER_SEC;
+    axis->Objects.objProfileDeceleration =
+        (UINT32)ECAT_MOTOR_DECEL_RPM_PER_SEC;
     axis->Objects.objSupportedDriveModes = ECAT_SUPPORTED_DRIVE_MODES;
 }
 
@@ -350,6 +371,7 @@ s32 EthercatMotorControl_ApplyRamp(s32 target_base_rpm)
     s32 maximum_base_rpm;
     s32 ramp_rate;
     s32 ramp_increment;
+    s32 ramp_step;
 
     maximum_base_rpm =
         ECAT_MOTOR_MAX_RPM * ECAT_MOTOR_BASE_UNITS_PER_RPM;
@@ -380,23 +402,29 @@ s32 EthercatMotorControl_ApplyRamp(s32 target_base_rpm)
         ((target_base_rpm < 0) &&
          (target_base_rpm > sAppliedBaseRpm)))
     {
-        ramp_rate = ECAT_MOTOR_DECEL_RPM_PER_SEC;
+        ramp_rate = EthercatMotorControl_RampLimit(
+            LocalAxes[0].Objects.objProfileDeceleration,
+            ECAT_MOTOR_DECEL_RPM_PER_SEC);
     }
     else
     {
-        ramp_rate = ECAT_MOTOR_ACCEL_RPM_PER_SEC;
+        ramp_rate = EthercatMotorControl_RampLimit(
+            LocalAxes[0].Objects.objProfileAcceleration,
+            ECAT_MOTOR_ACCEL_RPM_PER_SEC);
     }
 
     ramp_increment =
         ramp_rate * ECAT_MOTOR_BASE_UNITS_PER_RPM;
     sRampAccumulator += ramp_increment;
 
-    if (sRampAccumulator >= ECAT_MOTOR_CONTROL_HZ)
+    ramp_step = sRampAccumulator / ECAT_MOTOR_CONTROL_HZ;
+    sRampAccumulator %= ECAT_MOTOR_CONTROL_HZ;
+
+    if (ramp_step > 0)
     {
-        sRampAccumulator -= ECAT_MOTOR_CONTROL_HZ;
         if (target_base_rpm > sAppliedBaseRpm)
         {
-            sAppliedBaseRpm++;
+            sAppliedBaseRpm += ramp_step;
             if (sAppliedBaseRpm > target_base_rpm)
             {
                 sAppliedBaseRpm = target_base_rpm;
@@ -404,7 +432,7 @@ s32 EthercatMotorControl_ApplyRamp(s32 target_base_rpm)
         }
         else
         {
-            sAppliedBaseRpm--;
+            sAppliedBaseRpm -= ramp_step;
             if (sAppliedBaseRpm < target_base_rpm)
             {
                 sAppliedBaseRpm = target_base_rpm;
