@@ -618,6 +618,7 @@ typedef struct OBJ_STRUCT_PACKED_START
     INT16 objTorqueActualValue; /**< \brief Torque Actual Value (0x6077)*/
     INT32 objTargetPosition; /**< \brief Target Position (0x607A)*/
     TOBJ607D objSoftwarePositionLimit; /**< \brief Software Position limit (0x607D)*/
+    UINT32 objProfileVelocity; /**< \brief Profile Velocity (0x6081)*/
     UINT32 objQuickStopDeclaration; /**< \brief Quick Stop Declaration (0x6085)*/
     TOBJ60C2 objInterpolationTimePeriod; /**< \brief Interpolation Time Period (0x60C2)*/
     INT32 objTargetVelocity; /**< \brief Target Velocity (0x60FF)*/
@@ -921,6 +922,13 @@ OBJCONST TSDOINFOENTRYDESC    OBJMEM asEntryDesc0x607D[] = {
 OBJCONST UCHAR OBJMEM aName0x607D[] = "Software Position Limit\000Min position limit\000Max position limit\000\377";
 
 
+/** \brief Object 0x6081 (Profile Velocity) entry description*/
+OBJCONST TSDOINFOENTRYDESC    OBJMEM sEntryDesc0x6081 = {DEFTYPE_UNSIGNED32, 0x20, ACCESS_READWRITE};
+
+/** \brief Object 0x6081 (Profile Velocity) object name*/
+OBJCONST UCHAR OBJMEM aName0x6081[] = "Profile Velocity";
+
+
 /** \brief Object 0x6085 (Quickstop Declaration) entry description*/
 OBJCONST TSDOINFOENTRYDESC    OBJMEM sEntryDesc0x6085 = {DEFTYPE_INTEGER32, 0x20, (ACCESS_READWRITE | OBJACCESS_RXPDOMAPPING)};
 
@@ -1170,6 +1178,7 @@ CYCLIC_SYNC_VELOCITY_MODE,/*(INT16) Mode Of Operation Display 0x6061*/
 0x0,/*(INT16) Torque Actual Value 0x6077*/
 0x0,/*(INT32) Target Position 0x607A*/
 {2,0x88CA6C00,0x77359400},/*TOBJ607D Software Position Limit (minLimit: -2000000000 / maxLimit: 2000000000)*/
+100,/*(UINT32) Profile Velocity 0x6081, rpm*/
 0x0,/*(UINT32) QuickStopDeclaration 0x6085*/
 {2,1,(INT8)-3},/*TOBJ60C2 Interpolation Time Period*/
 0x0,/*(INT32) Target Velocity    0x60FF*/
@@ -1249,6 +1258,8 @@ PROTO TOBJECT    OBJMEM DefCiA402AxisObjDic[]
    {NULL,NULL, 0x607D, {DEFTYPE_INTEGER32 , 2 | (OBJCODE_ARR << 8)}, asEntryDesc0x607D, aName0x607D, NULL, NULL, NULL, 0x0000 },
    /* Object 0x607A */
    {NULL,NULL, 0x607A, {DEFTYPE_INTEGER32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x607A, aName0x607A, NULL, NULL, NULL, 0x0000 },
+   /* Object 0x6081 */
+   {NULL,NULL, 0x6081, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6081, aName0x6081, NULL, NULL, NULL, 0x0000 },
    /* Object 0x6085 */
    {NULL,NULL, 0x6085, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6085, aName0x6085, NULL, NULL, NULL, 0x0000 },
    /* Object 0x60C2 */

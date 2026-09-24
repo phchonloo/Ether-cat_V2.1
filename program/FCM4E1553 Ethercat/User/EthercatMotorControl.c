@@ -18,6 +18,7 @@ extern TCiA402Axis LocalAxes[MAX_AXES];
 
 #define ECAT_CONTROLWORD_NEW_SETPOINT   0x0010U
 #define ECAT_CONTROLWORD_RELATIVE       0x0040U
+#define ECAT_CONTROLWORD_HALT           0x0100U
 #define ECAT_STATUSWORD_MODE_BIT12      0x1000U
 #define ECAT_POSITION_TOLERANCE         1L
 #define ECAT_DEFAULT_MICROSTEPS_PER_REV 1000L
@@ -67,6 +68,34 @@ static s32 EthercatMotorControl_AbsRpmLimit(INT32 requested_limit)
     return (s32)limit;
 }
 
+static s32 EthercatMotorControl_IntegerSqrtLimit(
+    signed long long value,
+    s32 limit)
+{
+    s32 low = 0;
+    s32 high = limit;
+    s32 result = 0;
+
+    while (low <= high)
+    {
+        s32 middle = low + ((high - low) >> 1);
+        signed long long square =
+            (signed long long)middle * (signed long long)middle;
+
+        if (square <= value)
+        {
+            result = middle;
+            low = middle + 1;
+        }
+        else
+        {
+            high = middle - 1;
+        }
+    }
+
+    return result;
+}
+
 static u8 EthercatMotorControl_ModeSupported(INT16 mode)
 {
     switch (mode)
@@ -113,6 +142,8 @@ static s32 EthercatMotorControl_PositionCommand(INT32 target_position,
     signed long long error;
     signed long long absolute_error;
     signed long long rpm;
+    signed long long braking_speed_squared;
+    s32 braking_rpm;
     s32 resolution;
 
     error = (signed long long)target_position -
@@ -132,12 +163,34 @@ static s32 EthercatMotorControl_PositionCommand(INT32 target_position,
         resolution = ECAT_DEFAULT_MICROSTEPS_PER_REV;
     }
 
-    /* Proportional position loop: one revolution of error requests 60 rpm. */
-    rpm = (absolute_error * 60LL) /
-          (signed long long)resolution;
-    if (rpm < 1LL)
+    /*
+     * Use the configured profile velocity while there is enough distance
+     * to run at it.  The braking-distance limiter below performs the
+     * deceleration.  A proportional error-to-speed conversion made short
+     * moves unnecessarily slow and could look as if PP/CSP did not start.
+     */
+    rpm = (signed long long)speed_limit;
+
+    /*
+     * Do not request a speed whose open-loop stopping distance is longer
+     * than the remaining position error.  This keeps the velocity ramp from
+     * carrying the estimated position through the target and oscillating.
+     * d[steps] = rpm^2 * steps_per_rev / (120 * decel[rpm/s]).
+     */
+    braking_speed_squared =
+        (absolute_error * 120LL *
+         (signed long long)ECAT_MOTOR_DECEL_RPM_PER_SEC) /
+        (signed long long)resolution;
+    braking_rpm = EthercatMotorControl_IntegerSqrtLimit(
+        braking_speed_squared,
+        speed_limit);
+    if (braking_rpm < 1)
     {
-        rpm = 1LL;
+        braking_rpm = 1;
+    }
+    if (rpm > braking_rpm)
+    {
+        rpm = braking_rpm;
     }
 
     if (rpm > speed_limit)
@@ -161,8 +214,20 @@ static s32 EthercatMotorControl_ProfilePosition(TCiA402Axis *axis,
     new_setpoint = ((axis->Objects.objControlWord &
                      ECAT_CONTROLWORD_NEW_SETPOINT) != 0U) ? 1U : 0U;
 
-    if ((new_setpoint != 0U) &&
-        (sProfilePositionSetpointSeen == 0U))
+    /*
+     * Accept the standard bit-4 edge, and also accept a changed absolute
+     * target while bit 4 is low.  The latter keeps PP usable with masters
+     * that hold 0x6040 at 0x000F and only update 0x607A.  Relative moves
+     * still require the CiA402 new-setpoint handshake so they cannot be
+     * accumulated repeatedly.
+     */
+    if (((new_setpoint != 0U) &&
+         (sProfilePositionSetpointSeen == 0U)) ||
+        ((new_setpoint == 0U) &&
+         ((axis->Objects.objControlWord &
+           ECAT_CONTROLWORD_RELATIVE) == 0U) &&
+         (axis->Objects.objTargetPosition !=
+          sProfilePositionTarget)))
     {
         target = (signed long long)axis->Objects.objTargetPosition;
         if ((axis->Objects.objControlWord &
@@ -183,8 +248,14 @@ static s32 EthercatMotorControl_ProfilePosition(TCiA402Axis *axis,
             (UINT16)~ECAT_STATUSWORD_MODE_BIT12;
     }
 
+    if ((axis->Objects.objControlWord & ECAT_CONTROLWORD_HALT) != 0U)
+    {
+        *target_reached = 0U;
+        return 0;
+    }
+
     speed_limit = EthercatMotorControl_AbsRpmLimit(
-        axis->Objects.objTargetVelocity);
+        (INT32)axis->Objects.objProfileVelocity);
 
     return EthercatMotorControl_PositionCommand(
         sProfilePositionTarget,
@@ -270,6 +341,7 @@ void EthercatMotorControl_Init(void)
     /* Keep CSV as the power-up mode while allowing the master to change 0x6060. */
     axis->Objects.objModesOfOperation = CYCLIC_SYNC_VELOCITY_MODE;
     axis->Objects.objModesOfOperationDisplay = CYCLIC_SYNC_VELOCITY_MODE;
+    axis->Objects.objProfileVelocity = (UINT32)ECAT_MOTOR_MAX_RPM;
     axis->Objects.objSupportedDriveModes = ECAT_SUPPORTED_DRIVE_MODES;
 }
 

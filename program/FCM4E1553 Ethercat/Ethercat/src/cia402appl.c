@@ -446,6 +446,10 @@ UINT16 CiA402_Init(void)
                     pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objSoftwarePositionLimit;
                     break;
 
+                case 0x6081:
+                    pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objProfileVelocity;
+                    break;
+
                 case 0x6085:
                     pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objQuickStopDeclaration;
                     break;
@@ -1137,8 +1141,11 @@ void CiA402_Application(TCiA402Axis *axis)
         break;
 
     default:
-        axis->Objects.objStatusWord |=
-            STATUSWORD_DRIVE_FOLLOWS_COMMAND;
+        /*
+         * Statusword bit 12 is mode-specific.  In PP it is the set-point
+         * acknowledge handshake and must be allowed to clear when controlword
+         * bit 4 clears.  EthercatMotorControl_Update() owns this bit.
+         */
         break;
     }
 }
@@ -1594,12 +1601,12 @@ UINT16 APPL_GenerateMapping(UINT16* pInputSize,UINT16* pOutputSize)
                 0x000FU)
         {
             case 0:
-                /* PP: bit 0, PV: bit 2, HM: bit 5, CSP: bit 7, CSV: bit 8. */
-                LocalAxes[PDOAssignEntryCnt].Objects.objSupportedDriveModes = 0x1A5;
+                /* PP: bit 0, PV: bit 2, CSP: bit 7, CSV: bit 8. */
+                LocalAxes[PDOAssignEntryCnt].Objects.objSupportedDriveModes = 0x185;
                 break;
             case 1:
-                /* Position-oriented PDO: PP, HM and CSP. */
-                LocalAxes[PDOAssignEntryCnt].Objects.objSupportedDriveModes = 0xA1;
+                /* Position-oriented PDO: PP and CSP. */
+                LocalAxes[PDOAssignEntryCnt].Objects.objSupportedDriveModes = 0x81;
                 break;
             case 2:
                 /* Velocity-oriented PDO: PV, HM and CSV. */

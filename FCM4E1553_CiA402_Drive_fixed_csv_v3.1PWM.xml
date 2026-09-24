@@ -1087,7 +1087,7 @@
             <SubIndex>0</SubIndex>
             <BitLen>32</BitLen>
             <Name>TargetVelocity</Name>
-            <Comment>PV/CSV target velocity, or PP velocity limit; signed rpm, firmware limit +/-100</Comment>
+            <Comment>PV/CSV target velocity; signed rpm, firmware limit +/-100</Comment>
             <DataType>DINT</DataType>
           </Entry>
           <Entry>
@@ -1378,6 +1378,18 @@
                 <Flags>
                   <Access>rw</Access>
                   <PdoMapping>r</PdoMapping>
+                </Flags>
+              </Object>
+              <Object>
+                <Index DependOnSlot="true">#x6081</Index>
+                <Name>Profile velocity</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info>
+                  <DefaultData>64000000</DefaultData>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
                 </Flags>
               </Object>
               <Object>
@@ -1721,6 +1733,18 @@
                 <Flags>
                   <Access>rw</Access>
                   <PdoMapping>r</PdoMapping>
+                </Flags>
+              </Object>
+              <Object>
+                <Index DependOnSlot="true">#x6081</Index>
+                <Name>Profile velocity</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info>
+                  <DefaultData>64000000</DefaultData>
+                </Info>
+                <Flags>
+                  <Access>rw</Access>
                 </Flags>
               </Object>
               <Object>

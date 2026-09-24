@@ -7,11 +7,11 @@
 #define ECAT_MOTOR_BASE_UNITS_PER_RPM  16L
 
 /* EtherCAT velocity and position modes share this absolute speed limit. */
-#define ECAT_MOTOR_MAX_RPM             1000L
+#define ECAT_MOTOR_MAX_RPM             100L
 
 /* Linear command ramps prevent an open-loop stepper from losing synchronism. */
-#define ECAT_MOTOR_ACCEL_RPM_PER_SEC   50L
-#define ECAT_MOTOR_DECEL_RPM_PER_SEC   100L
+#define ECAT_MOTOR_ACCEL_RPM_PER_SEC   300L
+#define ECAT_MOTOR_DECEL_RPM_PER_SEC   300L
 
 /* TIM8 calls the motor algorithm at 16 kHz. */
 #define ECAT_MOTOR_CONTROL_HZ          16000L
