@@ -41,12 +41,12 @@ static void exti_configure(uint16_t pin,
 
 void exti_init_irq(void)
 {
-    /* EtherCAT通信次于ADC；ESC事件在EtherCAT中优先处理。 */
+    /* EtherCAT协议中断使用最高抢占级；ESC事件最先处理。 */
     exti_configure(GPIO_PIN_0,
                    GPIO_PIN_SOURCE0,
                    EXTI_LINE0,
                    EXTI0_IRQn,
-                   1U,
+                   0U,
                    0U);
 }
 
@@ -56,7 +56,7 @@ void exti_init_sync0(void)
                    GPIO_PIN_SOURCE1,
                    EXTI_LINE1,
                    EXTI1_IRQn,
-                   1U,
+                   0U,
                    1U);
 }
 
@@ -66,6 +66,6 @@ void exti_init_sync1(void)
                    GPIO_PIN_SOURCE2,
                    EXTI_LINE2,
                    EXTI2_IRQn,
-                   1U,
+                   0U,
                    2U);
 }

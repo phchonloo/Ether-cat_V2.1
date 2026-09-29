@@ -62,14 +62,19 @@ UALEVENT;
 #define 	DISABLE_GLOBAL_INT           			  __disable_irq()
 #define 	ENABLE_GLOBAL_INT           		    __enable_irq()
 
-/*
- * NVIC分组2下，抢占优先级1对应BASEPRI值0x40。
- * EtherCAT/QSPI临界区只屏蔽优先级1及以下的通信中断，
- * 保留优先级0的TIM8和ADC DMA中断，避免ADC中断响应抖动。
- */
-#define    ECAT_CRITICAL_BASEPRI          ((uint32_t)0x40U)
-#define    DISABLE_AL_EVENT_INT           __set_BASEPRI(ECAT_CRITICAL_BASEPRI)
-#define    ENABLE_AL_EVENT_INT            __set_BASEPRI(0U)
+/* Priority 0 EtherCAT IRQs must not interrupt a foreground SQI transfer.
+ * Restore PRIMASK after each short transfer, not after a whole mailbox read. */
+static uint32_t EscQspiEnterCritical(void)
+{
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    return primask;
+}
+
+static void EscQspiLeaveCritical(uint32_t primask)
+{
+    __set_PRIMASK(primask);
+}
 
 
 
@@ -213,9 +218,9 @@ volatile UINT8 g_esc_pdi_init_error = 0U;
   *****************************************************************************/
 static void GetInterruptRegister(void)
 {
-      DISABLE_AL_EVENT_INT;
+      uint32_t primask = EscQspiEnterCritical();
       HW_EscReadIsr((MEM_ADDR *)&EscALEvent.Word, 0x220, 2);
-      ENABLE_AL_EVENT_INT;
+      EscQspiLeaveCritical(primask);
 
 }
 
@@ -546,7 +551,6 @@ void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 	uint8_t *ptr = RxBuff;
 
 
-	DISABLE_AL_EVENT_INT;
 	while(Len > 0)
 	{
 			num= (Len > 4) ? 4 : Len;
@@ -568,7 +572,11 @@ void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 			} 
 		
 		
-		qspi_read(ptr,Address,4);
+        {
+            uint32_t primask = EscQspiEnterCritical();
+            qspi_read(ptr,Address,4);
+            EscQspiLeaveCritical(primask);
+        }
 		
 		
 		Len -= num;
@@ -581,7 +589,6 @@ void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 		pTmpData[i] = RxBuff[len+i];
 
 	}
-	ENABLE_AL_EVENT_INT;
 
 }
 #if INTERRUPTS_SUPPORTED
@@ -679,14 +686,12 @@ void HW_EscWrite( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
         }
 
 
-        DISABLE_AL_EVENT_INT;
-       
         /* start transmission */
-
-        qspi_write(pTmpData, Address, i);
-
-
-        ENABLE_AL_EVENT_INT;
+        {
+            uint32_t primask = EscQspiEnterCritical();
+            qspi_write(pTmpData, Address, i);
+            EscQspiLeaveCritical(primask);
+        }
 
         /* next address */
         Len -= i;

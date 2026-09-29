@@ -42,7 +42,7 @@ void dma_config(void)
 
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     nvic_init.NVIC_IRQChannel = DMA2_Channel1_IRQn;
-    nvic_init.NVIC_IRQChannelPreemptionPriority = 0U;
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 1U;
     nvic_init.NVIC_IRQChannelSubPriority = 0U;
     nvic_init.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic_init);
