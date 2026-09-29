@@ -62,18 +62,21 @@ UALEVENT;
 #define 	DISABLE_GLOBAL_INT           			  __disable_irq()
 #define 	ENABLE_GLOBAL_INT           		    __enable_irq()
 
-/* Priority 0 EtherCAT IRQs must not interrupt a foreground SQI transfer.
- * Restore PRIMASK after each short transfer, not after a whole mailbox read. */
+/* Group 2 gives two pre-emption and two subpriority bits. With four
+ * implemented priority bits, 0x40 masks priority 1 and below, but leaves
+ * the priority 0 motor-control IRQ running during each SQI transfer. */
+#define ECAT_QSPI_BASEPRI ((uint32_t)0x40U)
+
 static uint32_t EscQspiEnterCritical(void)
 {
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
-    return primask;
+    uint32_t basepri = __get_BASEPRI();
+    __set_BASEPRI_MAX(ECAT_QSPI_BASEPRI);
+    return basepri;
 }
 
-static void EscQspiLeaveCritical(uint32_t primask)
+static void EscQspiLeaveCritical(uint32_t basepri)
 {
-    __set_PRIMASK(primask);
+    __set_BASEPRI(basepri);
 }
 
 
@@ -218,9 +221,9 @@ volatile UINT8 g_esc_pdi_init_error = 0U;
   *****************************************************************************/
 static void GetInterruptRegister(void)
 {
-      uint32_t primask = EscQspiEnterCritical();
+      uint32_t basepri = EscQspiEnterCritical();
       HW_EscReadIsr((MEM_ADDR *)&EscALEvent.Word, 0x220, 2);
-      EscQspiLeaveCritical(primask);
+      EscQspiLeaveCritical(basepri);
 
 }
 
@@ -573,9 +576,9 @@ void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 		
 		
         {
-            uint32_t primask = EscQspiEnterCritical();
+            uint32_t basepri = EscQspiEnterCritical();
             qspi_read(ptr,Address,4);
-            EscQspiLeaveCritical(primask);
+            EscQspiLeaveCritical(basepri);
         }
 		
 		
@@ -688,9 +691,9 @@ void HW_EscWrite( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 
         /* start transmission */
         {
-            uint32_t primask = EscQspiEnterCritical();
+            uint32_t basepri = EscQspiEnterCritical();
             qspi_write(pTmpData, Address, i);
-            EscQspiLeaveCritical(primask);
+            EscQspiLeaveCritical(basepri);
         }
 
         /* next address */

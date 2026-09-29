@@ -92,10 +92,10 @@ static void motor_control_irq_priority_config(void)
 {
     NVIC_InitType nvic_init;
 
-    /* Keep the motor loop below EtherCAT's priority 0 interrupts. */
+    /* The 16 kHz motor loop must pre-empt protocol work. */
     nvic_init.NVIC_IRQChannel = TIM8_UP_IRQn;
-    nvic_init.NVIC_IRQChannelPreemptionPriority = 1U;
-    nvic_init.NVIC_IRQChannelSubPriority = 1U;
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 0U;
+    nvic_init.NVIC_IRQChannelSubPriority = 0U;
     nvic_init.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic_init);
 }

@@ -50,9 +50,9 @@ void timer_init(uint8_t period)
 #if ECAT_TIMER_INT
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     nvic_init.NVIC_IRQChannel = TIM6_IRQn;
-    /* EtherCAT时基与ESC/SYNC同为最高抢占级，内部排序最后。 */
-    nvic_init.NVIC_IRQChannelPreemptionPriority = 0U;
-    nvic_init.NVIC_IRQChannelSubPriority = 3U;
+    /* 1 ms protocol timer runs below the ESC and SYNC event interrupts. */
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 2U;
+    nvic_init.NVIC_IRQChannelSubPriority = 0U;
     nvic_init.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic_init);
 #endif
@@ -124,8 +124,8 @@ void timer_pwm_adc_init(void)
 
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     nvic_init.NVIC_IRQChannel = TIM8_UP_IRQn;
-    nvic_init.NVIC_IRQChannelPreemptionPriority = 1U;
-    nvic_init.NVIC_IRQChannelSubPriority = 1U;
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 0U;
+    nvic_init.NVIC_IRQChannelSubPriority = 0U;
     nvic_init.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic_init);
 }
