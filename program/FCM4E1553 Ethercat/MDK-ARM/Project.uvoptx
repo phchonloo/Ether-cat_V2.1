@@ -153,82 +153,114 @@
           <Name></Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>596</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134253798</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\Ethercat\src\sdoserv.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\N32G455\../Ethercat/src/sdoserv.c\596</Expression>
+        </Bp>
+      </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>LocalAxes[0].ObjDic</ItemText>
+          <ItemText>\\N32G455\../User/QSPI.c\s_qspi_timeout_count</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SMAddress</ItemText>
+          <ItemText>bReceiveMbxIsLocked</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_adc_valid</ItemText>
+          <ItemText>bSendMbxIsFull</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_adc_count</ItemText>
+          <ItemText>u8MailboxSendReqStored</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_adc_sequence</ItemText>
+          <ItemText>psWriteMbx</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_adc_error_count</ItemText>
+          <ItemText>abort</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_adc_value[0]</ItemText>
+          <ItemText>\\N32G455\../Ethercat/src/sdoserv.c\SDOS_SdoInd\abort</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_adc_value[1]</ItemText>
+          <ItemText>\\N32G455\../Ethercat/src/sdoserv.c\SDOS_SdoInd</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_adc_value[2]</ItemText>
+          <ItemText>\\N32G455\../Ethercat/src/sdoserv.c\SDOS_SdoInd\abort</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_adc_value[3]</ItemText>
+          <ItemText>\\N32G455\../Ethercat/src/sdoserv.c\SDOS_SdoInd\index</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>((unsigned long)g_adc_value[0] * 3300UL) / 4095UL</ItemText>
+          <ItemText>\\N32G455\../Ethercat/src/sdoserv.c\SDOS_SdoInd\subindex</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>((unsigned long)g_adc_value[1] * 3300UL) / 4095UL</ItemText>
+          <ItemText>\\N32G455\../Ethercat/src/sdoserv.c\SDOS_SdoInd\bCompleteAccess</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>((unsigned long)g_adc_value[2] * 3300UL) / 4095UL</ItemText>
+          <ItemText>gMotorCycleCounterAvailable</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>1</WinNumber>
-          <ItemText>((unsigned long)g_adc_value[3] * 3300UL) / 4095UL</ItemText>
+          <ItemText>gMotorIsrLoadPercent</ItemText>
         </Ww>
         <Ww>
           <count>14</count>
           <WinNumber>1</WinNumber>
-          <ItemText>adc_value,0x0A</ItemText>
+          <ItemText>gMotorIsrMaxCycles</ItemText>
+        </Ww>
+        <Ww>
+          <count>15</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>gMotorIsrPeriodCycles</ItemText>
+        </Ww>
+        <Ww>
+          <count>16</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>gMotorIsrOverrunCount</ItemText>
+        </Ww>
+        <Ww>
+          <count>17</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>gEscQspiMaxCriticalCycles</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -244,7 +276,7 @@
       <DebugFlag>
         <trace>0</trace>
         <periodic>1</periodic>
-        <aLwin>0</aLwin>
+        <aLwin>1</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
         <aSer2>0</aSer2>
@@ -661,7 +693,7 @@
 
   <Group>
     <GroupName>Stack</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

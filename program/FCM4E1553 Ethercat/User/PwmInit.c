@@ -1,10 +1,30 @@
 #include "PwmInit.h"
 
+/*
+ * CoE Online isolation test:
+ * 0 = normal motor control, 1 = no algorithm/PWM, 2 = algorithm with PWM pins off.
+ * Mode 2 separates 16 kHz CPU load from motor power-stage interference.
+ */
+#define PWM_COE_TEST_MODE 0U
+#if PWM_COE_TEST_MODE > 2U
+#error PWM_COE_TEST_MODE must be 0, 1, or 2
+#endif
+
 #define PWM_PINS   (GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_8 | GPIO_PIN_9)
 #define PWM_CLOCKS (RCC_APB2_PERIPH_GPIOC \
                     | RCC_APB2_PERIPH_AFIO)
 
 u8 PwmFlag = 0U;
+
+/* Live timing diagnostics; read these while the MCU is running. */
+volatile uint32_t gMotorIsrLoadPercent = 0U;
+volatile uint32_t gMotorIsrMaxCycles = 0U;
+volatile uint32_t gMotorIsrOverrunCount = 0U;
+volatile uint32_t gMotorIsrPeriodCycles = 0U;
+volatile uint8_t gMotorCycleCounterAvailable = 0U;
+
+static uint32_t sMotorIsrWindowCycles = 0U;
+static uint8_t sMotorIsrWindowSamples = 0U;
 
 /*
  * PWM与ADC同步关系：
@@ -28,6 +48,18 @@ void pwm_config(void)
 {
     GPIO_InitType gpio_init;
     OCInitType compare_init;
+
+    /* DWT observes the motor ISR without a breakpoint or GPIO timing probe. */
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    if ((DWT->CTRL & DWT_CTRL_NOCYCCNT_Msk) == 0U)
+    {
+        DWT->CYCCNT = 0U;
+        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+        gMotorIsrPeriodCycles = SystemCoreClock / 16000U;
+        gMotorCycleCounterAvailable =
+            (gMotorIsrPeriodCycles != 0U) ? 1U : 0U;
+    }
+    gEscQspiMaxCriticalCycles = 0U;
 
     RCC_EnableAPB2PeriphClk(PWM_CLOCKS, ENABLE);
 
@@ -76,8 +108,13 @@ void pwm_config(void)
     TIM_ConfigOc3Preload(TIM8, TIM_OC_PRE_LOAD_ENABLE);
     TIM_ConfigOc4Preload(TIM8, TIM_OC_PRE_LOAD_ENABLE);
 
+    /* TIM8 keeps running for the 16 kHz algorithm and ADC trigger in mode 2. */
+#if PWM_COE_TEST_MODE == 2U
+    TIM_EnableCtrlPwmOutputs(TIM8, DISABLE);
+#else
     /* 高级定时器TIM8必须打开主输出开关，CH1～CH4才能驱动到GPIO。 */
     TIM_EnableCtrlPwmOutputs(TIM8, ENABLE);
+#endif
 
     /* 启动TIM8后，PWM输出和ADC常规序列周期触发同时开始运行。 */
     timer_pwm_adc_start();
@@ -103,9 +140,46 @@ void TIM8_UP_IRQHandler(void)
 {
     if (TIM_GetIntStatus(TIM8, TIM_INT_UPDATE) != RESET)
     {
+        uint32_t start_cycles = 0U;
+
+        if (gMotorCycleCounterAvailable != 0U)
+        {
+            start_cycles = DWT->CYCCNT;
+        }
+
         TIM_ClrIntPendingBit(TIM8, TIM_INT_UPDATE);
-        //UpPwm(563U, 1125U, 1688U, 2250U);
-			MainFunt();
+#if PWM_COE_TEST_MODE == 1U
+        /* Keep TIM8/ADC running while preventing motor phase output. */
+        UpPwm(0U, 0U, 0U, 0U);
+#else
+        /* Mode 2 still runs the full algorithm; hardware PWM outputs stay off. */
+        MainFunt();
+#endif
         PwmFlag = 1U;
+
+        if (gMotorCycleCounterAvailable != 0U)
+        {
+            uint32_t elapsed_cycles = DWT->CYCCNT - start_cycles;
+
+            if (elapsed_cycles > gMotorIsrMaxCycles)
+            {
+                gMotorIsrMaxCycles = elapsed_cycles;
+            }
+            if (elapsed_cycles >= gMotorIsrPeriodCycles)
+            {
+                gMotorIsrOverrunCount++;
+            }
+
+            sMotorIsrWindowCycles += elapsed_cycles;
+            sMotorIsrWindowSamples++;
+            if (sMotorIsrWindowSamples >= 100U)
+            {
+                /* 100 samples: sum / cycles-per-period equals CPU percent. */
+                gMotorIsrLoadPercent =
+                    sMotorIsrWindowCycles / gMotorIsrPeriodCycles;
+                sMotorIsrWindowCycles = 0U;
+                sMotorIsrWindowSamples = 0U;
+            }
+        }
     }
 }

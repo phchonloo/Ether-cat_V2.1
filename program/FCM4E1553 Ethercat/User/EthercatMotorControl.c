@@ -457,6 +457,12 @@ void EthercatMotorControl_FastUpdate(s32 applied_base_rpm)
     sVelocityActualRpm =
         applied_base_rpm / ECAT_MOTOR_BASE_UNITS_PER_RPM;
 
+    /* A stopped motor cannot advance position; avoid 64-bit work at 16 kHz. */
+    if (applied_base_rpm == 0)
+    {
+        return;
+    }
+
     resolution = sxifen;
     if (resolution <= 0)
     {

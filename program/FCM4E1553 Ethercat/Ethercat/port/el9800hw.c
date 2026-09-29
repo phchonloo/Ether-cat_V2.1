@@ -14,6 +14,7 @@
 
 /* Sink for legacy LED1/LED3/LED5 PDO writes; the real pins belong to RS485. */
 volatile uint8_t g_rs485_reserved_led_sink;
+volatile uint32_t gEscQspiMaxCriticalCycles = 0U;
 #undef    _EL9800HW_
 /* ECATCHANGE_START(V5.11) ECAT10*/
 /*remove definition of _EL9800HW_ (#ifdef is used in el9800hw.h)*/
@@ -62,21 +63,35 @@ UALEVENT;
 #define 	DISABLE_GLOBAL_INT           			  __disable_irq()
 #define 	ENABLE_GLOBAL_INT           		    __enable_irq()
 
-/* Group 2 gives two pre-emption and two subpriority bits. With four
- * implemented priority bits, 0x40 masks priority 1 and below, but leaves
- * the priority 0 motor-control IRQ running during each SQI transfer. */
-#define ECAT_QSPI_BASEPRI ((uint32_t)0x40U)
+/* Protect one complete SQI transaction, including QSPI reconfiguration.
+ * BASEPRI left the priority-0 motor IRQ able to interrupt the transaction. */
+static uint32_t sEscQspiCriticalStartCycles;
 
 static uint32_t EscQspiEnterCritical(void)
 {
-    uint32_t basepri = __get_BASEPRI();
-    __set_BASEPRI_MAX(ECAT_QSPI_BASEPRI);
-    return basepri;
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    if ((primask == 0U) &&
+        ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) != 0U))
+    {
+        sEscQspiCriticalStartCycles = DWT->CYCCNT;
+    }
+    return primask;
 }
 
-static void EscQspiLeaveCritical(uint32_t basepri)
+static void EscQspiLeaveCritical(uint32_t primask)
 {
-    __set_BASEPRI(basepri);
+    if ((primask == 0U) &&
+        ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) != 0U))
+    {
+        uint32_t elapsed_cycles =
+            DWT->CYCCNT - sEscQspiCriticalStartCycles;
+        if (elapsed_cycles > gEscQspiMaxCriticalCycles)
+        {
+            gEscQspiMaxCriticalCycles = elapsed_cycles;
+        }
+    }
+    __set_PRIMASK(primask);
 }
 
 
@@ -221,9 +236,9 @@ volatile UINT8 g_esc_pdi_init_error = 0U;
   *****************************************************************************/
 static void GetInterruptRegister(void)
 {
-      uint32_t basepri = EscQspiEnterCritical();
+      uint32_t primask = EscQspiEnterCritical();
       HW_EscReadIsr((MEM_ADDR *)&EscALEvent.Word, 0x220, 2);
-      EscQspiLeaveCritical(basepri);
+      EscQspiLeaveCritical(primask);
 
 }
 
@@ -576,9 +591,9 @@ void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 		
 		
         {
-            uint32_t basepri = EscQspiEnterCritical();
+            uint32_t primask = EscQspiEnterCritical();
             qspi_read(ptr,Address,4);
-            EscQspiLeaveCritical(basepri);
+            EscQspiLeaveCritical(primask);
         }
 		
 		
@@ -639,7 +654,11 @@ void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 			} 
 		
 		
-		qspi_read(ptr,Address,4);
+		{
+			uint32_t primask = EscQspiEnterCritical();
+			qspi_read(ptr,Address,4);
+			EscQspiLeaveCritical(primask);
+		}
 		
 		
 	Len -= num;
@@ -691,9 +710,9 @@ void HW_EscWrite( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 
         /* start transmission */
         {
-            uint32_t basepri = EscQspiEnterCritical();
+            uint32_t primask = EscQspiEnterCritical();
             qspi_write(pTmpData, Address, i);
-            EscQspiLeaveCritical(basepri);
+            EscQspiLeaveCritical(primask);
         }
 
         /* next address */
@@ -745,7 +764,11 @@ void HW_EscWriteIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
        
         /* start transmission */
 
-        qspi_write(pTmpData, Address, i);
+        {
+            uint32_t primask = EscQspiEnterCritical();
+            qspi_write(pTmpData, Address, i);
+            EscQspiLeaveCritical(primask);
+        }
 
         /* next address */
         Len -= i;

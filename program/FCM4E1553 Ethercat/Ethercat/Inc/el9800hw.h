@@ -63,6 +63,7 @@ V5.01 : Start file change log
  * EtherCAT LED fields writable without letting them touch those pins.
  */
 extern volatile uint8_t g_rs485_reserved_led_sink;
+extern volatile uint32_t gEscQspiMaxCriticalCycles;
 #undef LED_1
 #undef LED_3
 #undef LED_5
