@@ -174,6 +174,9 @@ OBJCONST UCHAR OBJMEM aName0x1000[] = "Device type";
  */
 UINT16 u16ErrorRegister = 0x0;
 
+/* The motor fault detector owns the manual-compatible 0x206C value. */
+extern UINT16 u16VendorErrorCode;
+
 /**
  * \brief 0x1001 (Error Register) entry description
  */
@@ -183,6 +186,11 @@ OBJCONST TSDOINFOENTRYDESC    OBJMEM sEntryDesc0x1001 = {DEFTYPE_UNSIGNED8, 0x08
  * \brief 0x1001 (Error Register) object name
  */
 OBJCONST UCHAR OBJMEM aName0x1001[] = "Error register";
+
+/* 0x206C: iD256-EC-style fault number (10/11/13/14), read-only. */
+OBJCONST TSDOINFOENTRYDESC OBJMEM sEntryDesc0x206C =
+    {DEFTYPE_UNSIGNED16, 0x10, ACCESS_READ};
+OBJCONST UCHAR OBJMEM aName0x206C[] = "Vendor fault code";
 
 
 /*---------------------------------------------
@@ -524,6 +532,8 @@ TOBJECT    OBJMEM GenObjDic[] = {
    {NULL,NULL, 0x1C32, {DEFTYPE_SMPAR, 32 | (OBJCODE_REC << 8)}, asEntryDesc0x1C3x, aName0x1C32, &sSyncManOutPar, NULL, NULL, 0x0000 },
    /* Object 0x1C33 */
    {NULL,NULL, 0x1C33, {DEFTYPE_SMPAR, 32 | (OBJCODE_REC << 8)}, asEntryDesc0x1C3x, aName0x1C33, &sSyncManInPar, NULL, NULL, 0x0000 },
+   /* Object 0x206C */
+   {NULL,NULL, 0x206C, {DEFTYPE_UNSIGNED16, 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x206C, aName0x206C, &u16VendorErrorCode, NULL, NULL, 0x0000 },
    
   /*end of entries*/
   {NULL,NULL, 0xFFFF, {0, 0}, NULL, NULL, NULL, NULL, NULL, 0x000}};

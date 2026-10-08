@@ -3,9 +3,9 @@
 #include "ecat_def.h"
 #include "applInterface.h"
 #include "cia402appl.h"
+#include "Errorhadle.h"
 
 /* Motor fault and microstep settings are owned by the existing motor code. */
-extern u8 ErrNumFlag;
 extern s32 sxifen;
 extern TCiA402Axis LocalAxes[MAX_AXES];
 
@@ -17,11 +17,23 @@ extern TCiA402Axis LocalAxes[MAX_AXES];
      ECAT_MODE_BIT(CYCLIC_SYNC_VELOCITY_MODE))
 
 #define ECAT_CONTROLWORD_NEW_SETPOINT   0x0010U
+#define ECAT_CONTROLWORD_CHANGE_IMMEDIATE 0x0020U
 #define ECAT_CONTROLWORD_RELATIVE       0x0040U
 #define ECAT_CONTROLWORD_HALT           0x0100U
 #define ECAT_STATUSWORD_MODE_BIT12      0x1000U
 #define ECAT_POSITION_TOLERANCE         1L
 #define ECAT_DEFAULT_MICROSTEPS_PER_REV 1000L
+#define ECAT_DEFAULT_SYNC_CYCLE_US      1000U
+#define ECAT_CSP_FOLLOWING_TIME_MS      50L
+
+typedef struct
+{
+    UINT32 sequence;
+    UINT32 cycle_time_us;
+    INT32 target_position;
+    INT32 target_velocity;
+    INT16 mode;
+} TCyclicSetpoint;
 
 volatile s32 gEcatBaseRpmCommand = 0;
 volatile u8 gEcatMotorEnabled = 0U;
@@ -34,6 +46,10 @@ static signed long long sPositionRemainder = 0;
 static INT16 sLastMode = NO_MODE;
 static INT32 sProfilePositionTarget = 0;
 static u8 sProfilePositionSetpointSeen = 0U;
+static volatile TCyclicSetpoint sCyclicSetpoint;
+static UINT32 sLastCspSequence = 0U;
+static INT32 sPreviousCspTarget = 0;
+static s32 sCspFeedForwardRpm = 0;
 
 static s32 EthercatMotorControl_ClampRpm(s32 target_rpm)
 {
@@ -144,6 +160,21 @@ static void EthercatMotorControl_Disable(void)
     /* Clear enable first so the 16 kHz ISR cannot consume a stale command. */
     gEcatMotorEnabled = 0U;
     gEcatBaseRpmCommand = 0;
+    /* Re-entering OP must wait for a fresh cyclic setpoint. */
+    sCyclicSetpoint.sequence = 0U;
+    sLastCspSequence = 0U;
+    sCspFeedForwardRpm = 0;
+}
+
+static void EthercatMotorControl_ResetProfilePosition(TCiA402Axis *axis,
+                                                      INT32 actual_position)
+{
+    /* Do not resume an old PP move when the drive is enabled again.  A low
+       bit 4 must first re-arm the next rising-edge set-point command. */
+    sProfilePositionTarget = actual_position;
+    sProfilePositionSetpointSeen = 1U;
+    axis->Objects.objStatusWord &=
+        (UINT16)~ECAT_STATUSWORD_MODE_BIT12;
 }
 
 static s32 EthercatMotorControl_PositionCommand(INT32 target_position,
@@ -229,32 +260,27 @@ static s32 EthercatMotorControl_ProfilePosition(TCiA402Axis *axis,
     new_setpoint = ((axis->Objects.objControlWord &
                      ECAT_CONTROLWORD_NEW_SETPOINT) != 0U) ? 1U : 0U;
 
-    /*
-     * Accept the standard bit-4 edge, and also accept a changed absolute
-     * target while bit 4 is low.  The latter keeps PP usable with masters
-     * that hold 0x6040 at 0x000F and only update 0x607A.  Relative moves
-     * still require the CiA402 new-setpoint handshake so they cannot be
-     * accumulated repeatedly.
-     */
-    if (((new_setpoint != 0U) &&
-         (sProfilePositionSetpointSeen == 0U)) ||
-        ((new_setpoint == 0U) &&
-         ((axis->Objects.objControlWord &
-           ECAT_CONTROLWORD_RELATIVE) == 0U) &&
-         (axis->Objects.objTargetPosition !=
-          sProfilePositionTarget)))
+    /* PP single-set-point handshake: 0x002F arms bit 4 low, and the
+       0x003F rising edge accepts 0x607A.  Changing 0x607A at 0x000F or
+       0x002F must not start a move.  Bit 5 selects immediate execution. */
+    if ((new_setpoint != 0U) &&
+        (sProfilePositionSetpointSeen == 0U))
     {
-        target = (signed long long)axis->Objects.objTargetPosition;
-        if ((axis->Objects.objControlWord &
-             ECAT_CONTROLWORD_RELATIVE) != 0U)
-        {
-            target += (signed long long)actual_position;
-        }
-
-        sProfilePositionTarget =
-            EthercatMotorControl_ClampPosition(target);
         sProfilePositionSetpointSeen = 1U;
-        axis->Objects.objStatusWord |= ECAT_STATUSWORD_MODE_BIT12;
+        if ((axis->Objects.objControlWord &
+             ECAT_CONTROLWORD_CHANGE_IMMEDIATE) != 0U)
+        {
+            target = (signed long long)axis->Objects.objTargetPosition;
+            if ((axis->Objects.objControlWord &
+                 ECAT_CONTROLWORD_RELATIVE) != 0U)
+            {
+                target += (signed long long)actual_position;
+            }
+
+            sProfilePositionTarget =
+                EthercatMotorControl_ClampPosition(target);
+            axis->Objects.objStatusWord |= ECAT_STATUSWORD_MODE_BIT12;
+        }
     }
     else if (new_setpoint == 0U)
     {
@@ -280,9 +306,120 @@ static s32 EthercatMotorControl_ProfilePosition(TCiA402Axis *axis,
         limited);
 }
 
+static s32 EthercatMotorControl_CyclicPosition(TCiA402Axis *axis,
+                                               INT32 target_position,
+                                               s32 actual_position,
+                                               UINT32 sequence,
+                                               UINT32 cycle_time_us,
+                                               u8 *target_reached,
+                                               u8 *limited)
+{
+    signed long long error;
+    signed long long correction;
+    signed long long command;
+    signed long long feed_forward;
+    signed long long denominator;
+    UINT32 elapsed_cycles;
+    s32 speed_limit;
+    s32 resolution;
+    s32 stationary_command;
+
+    speed_limit = EthercatMotorControl_ProfileVelocityLimit(
+        axis->Objects.objProfileVelocity);
+    resolution = sxifen;
+    if (resolution <= 0)
+    {
+        resolution = ECAT_DEFAULT_MICROSTEPS_PER_REV;
+    }
+
+    if (sequence != sLastCspSequence)
+    {
+        elapsed_cycles = sequence - sLastCspSequence;
+        if ((sLastCspSequence == 0U) || (elapsed_cycles > 100U))
+        {
+            /* Do not infer a velocity from an initial or stale target. */
+            sCspFeedForwardRpm = 0;
+        }
+        else
+        {
+            if (cycle_time_us == 0U)
+            {
+                cycle_time_us = ECAT_DEFAULT_SYNC_CYCLE_US;
+            }
+            denominator = (signed long long)resolution *
+                          (signed long long)cycle_time_us *
+                          (signed long long)elapsed_cycles;
+            feed_forward =
+                ((signed long long)target_position -
+                 (signed long long)sPreviousCspTarget) *
+                60000000LL / denominator;
+            if (feed_forward > speed_limit)
+            {
+                feed_forward = speed_limit;
+                *limited = 1U;
+            }
+            else if (feed_forward < -speed_limit)
+            {
+                feed_forward = -speed_limit;
+                *limited = 1U;
+            }
+
+            /* Smooth one-step PDO quantization at low speeds. */
+            sCspFeedForwardRpm =
+                (7 * sCspFeedForwardRpm + (s32)feed_forward) / 8;
+        }
+        sPreviousCspTarget = target_position;
+        sLastCspSequence = sequence;
+    }
+
+    error = (signed long long)target_position -
+            (signed long long)actual_position;
+    *target_reached =
+        ((error >= -ECAT_POSITION_TOLERANCE) &&
+         (error <= ECAT_POSITION_TOLERANCE) &&
+         (sCspFeedForwardRpm == 0) &&
+         (sVelocityActualRpm == 0)) ? 1U : 0U;
+
+    if (sCspFeedForwardRpm == 0)
+    {
+        /* Hold a stationary target with the existing braking limiter. */
+        stationary_command = EthercatMotorControl_PositionCommand(
+            target_position, actual_position, speed_limit,
+            target_reached, limited);
+        if (sVelocityActualRpm != 0)
+        {
+            *target_reached = 0U;
+        }
+        return stationary_command;
+    }
+
+    /* CSP follows the master's trajectory: velocity feed-forward plus
+       a bounded position-error correction, both in rpm. */
+    correction = error * 60000LL /
+                 ((signed long long)resolution *
+                  ECAT_CSP_FOLLOWING_TIME_MS);
+    command = (signed long long)sCspFeedForwardRpm + correction;
+    if (command > speed_limit)
+    {
+        command = speed_limit;
+        *limited = 1U;
+    }
+    else if (command < -speed_limit)
+    {
+        command = -speed_limit;
+        *limited = 1U;
+    }
+
+    return (s32)command;
+}
+
 static s32 EthercatMotorControl_SelectCommand(TCiA402Axis *axis,
                                               INT16 mode,
                                               s32 actual_position,
+                                              INT32 cyclic_target_position,
+                                              INT32 cyclic_target_velocity,
+                                              UINT32 cyclic_sequence,
+                                              UINT32 cyclic_cycle_time_us,
                                               u8 *target_reached,
                                               u8 *limited)
 {
@@ -299,17 +436,16 @@ static s32 EthercatMotorControl_SelectCommand(TCiA402Axis *axis,
 
     case CYCLIC_SYNC_POSITION_MODE:
         axis->Objects.objStatusWord |= ECAT_STATUSWORD_MODE_BIT12;
-        return EthercatMotorControl_PositionCommand(
-            axis->Objects.objTargetPosition,
-            actual_position,
-            EthercatMotorControl_ProfileVelocityLimit(
-                axis->Objects.objProfileVelocity),
-            target_reached,
-            limited);
+        return EthercatMotorControl_CyclicPosition(
+            axis, cyclic_target_position, actual_position,
+            cyclic_sequence, cyclic_cycle_time_us,
+            target_reached, limited);
 
     case PROFILE_VELOCITY_MODE:
     case CYCLIC_SYNC_VELOCITY_MODE:
-        raw_rpm = (s32)axis->Objects.objTargetVelocity;
+        raw_rpm = (mode == CYCLIC_SYNC_VELOCITY_MODE) ?
+                  (s32)cyclic_target_velocity :
+                  (s32)axis->Objects.objTargetVelocity;
         target_rpm = EthercatMotorControl_ClampRpm(raw_rpm);
         if (target_rpm != raw_rpm)
         {
@@ -329,6 +465,25 @@ static s32 EthercatMotorControl_SelectCommand(TCiA402Axis *axis,
     }
 }
 
+void EthercatMotorControl_OnSyncCycle(void)
+{
+    TCiA402Axis *axis = &LocalAxes[0];
+
+    /* Called by APPL_Application() on the selected SM/Sync0 cycle.
+       Write the sequence last so the foreground sees one complete setpoint. */
+    sCyclicSetpoint.mode = axis->Objects.objModesOfOperation;
+    sCyclicSetpoint.target_position =
+        axis->Objects.objTargetPosition;
+    sCyclicSetpoint.target_velocity =
+        axis->Objects.objTargetVelocity;
+    sCyclicSetpoint.cycle_time_us = axis->u32CycleTime;
+    sCyclicSetpoint.sequence++;
+    if (sCyclicSetpoint.sequence == 0U)
+    {
+        sCyclicSetpoint.sequence = 1U;
+    }
+}
+
 void EthercatMotorControl_Init(void)
 {
     TCiA402Axis *axis = &LocalAxes[0];
@@ -341,7 +496,15 @@ void EthercatMotorControl_Init(void)
     sPositionRemainder = 0;
     sLastMode = NO_MODE;
     sProfilePositionTarget = 0;
-    sProfilePositionSetpointSeen = 0U;
+    sProfilePositionSetpointSeen = 1U;
+    sCyclicSetpoint.sequence = 0U;
+    sCyclicSetpoint.cycle_time_us = ECAT_DEFAULT_SYNC_CYCLE_US;
+    sCyclicSetpoint.target_position = 0;
+    sCyclicSetpoint.target_velocity = 0;
+    sCyclicSetpoint.mode = NO_MODE;
+    sLastCspSequence = 0U;
+    sPreviousCspTarget = 0;
+    sCspFeedForwardRpm = 0;
 
     /* 0x1600/0x1A00 carry position, velocity and 0x6060 mode selection. */
     sRxPDOassign.u16SubIndex0 = 1U;
@@ -493,11 +656,18 @@ void EthercatMotorControl_Update(void)
 {
     TCiA402Axis *axis = &LocalAxes[0];
     INT16 requested_mode;
+    INT16 cyclic_mode;
+    INT32 cyclic_target_position;
+    INT32 cyclic_target_velocity;
+    UINT32 cyclic_sequence;
+    UINT32 cyclic_cycle_time_us;
     s32 actual_position;
     s32 target_rpm;
     u8 command_enabled;
     u8 target_reached;
     u8 limited;
+    u8 fault_code;
+    UINT16 cia_error_code;
 
     actual_position = sPositionActual;
     axis->Objects.objPositionActualValue = (INT32)actual_position;
@@ -505,6 +675,45 @@ void EthercatMotorControl_Update(void)
         (INT32)sVelocityActualRpm;
     axis->Objects.objSupportedDriveModes =
         ECAT_SUPPORTED_DRIVE_MODES;
+
+    /* Publish the latched detector result before any mode-dependent return. */
+    fault_code = ErrNumFlag;
+    if (fault_code != 0U)
+    {
+        EthercatMotorControl_Disable();
+        EthercatMotorControl_ResetProfilePosition(axis,
+                                                  actual_position);
+        axis->Objects.objStatusWord &=
+            (UINT16)~STATUSWORD_DRIVE_FOLLOWS_COMMAND;
+        u16VendorErrorCode = fault_code;
+        switch (fault_code)
+        {
+        case 11U: /* Motor phase disconnected: dedicated detector required. */
+            cia_error_code = ERROR_ARMATURE_CIRCUIT_INTERRUPTED;
+            u16ErrorRegister = 0x21U;
+            break;
+        case 13U: /* DC bus under-voltage. */
+            cia_error_code = ERROR_DC_LINK_UNDER_VOLTAGE;
+            u16ErrorRegister = 0x05U;
+            break;
+        case 14U: /* DC bus over-voltage. */
+            cia_error_code = ERROR_DC_LINK_OVER_VOLTAGE;
+            u16ErrorRegister = 0x05U;
+            break;
+        case 10U: /* VFO asserts a driver protection fault. */
+        default:
+            cia_error_code = ERROR_MOTOR_ERROR;
+            u16ErrorRegister = 0x21U;
+            break;
+        }
+        if ((axis->bAxisIsActive != FALSE) &&
+            (axis->i16State != STATE_FAULT_REACTION_ACTIVE) &&
+            (axis->i16State != STATE_FAULT))
+        {
+            CiA402_LocalError(cia_error_code);
+        }
+        return;
+    }
 
     requested_mode = axis->Objects.objModesOfOperation;
     if (EthercatMotorControl_ModeSupported(requested_mode) != 0U)
@@ -531,25 +740,11 @@ void EthercatMotorControl_Update(void)
             (UINT16)~(STATUSWORD_DRIVE_FOLLOWS_COMMAND |
                       STATUSWORD_TARGET_REACHED |
                       STATUSWORD_INTERNAL_LIMIT);
-        sProfilePositionTarget = actual_position;
-        sProfilePositionSetpointSeen = 0U;
+        EthercatMotorControl_ResetProfilePosition(axis,
+                                                  actual_position);
+        sLastCspSequence = 0U;
+        sCspFeedForwardRpm = 0;
         sLastMode = requested_mode;
-        return;
-    }
-
-    /* Convert the local hardware fault into a CiA402 fault transition once. */
-    if (ErrNumFlag != 0U)
-    {
-        EthercatMotorControl_Disable();
-        axis->Objects.objStatusWord &=
-            (UINT16)~STATUSWORD_DRIVE_FOLLOWS_COMMAND;
-
-        if ((axis->bAxisIsActive != FALSE) &&
-            (axis->i16State != STATE_FAULT_REACTION_ACTIVE) &&
-            (axis->i16State != STATE_FAULT))
-        {
-            CiA402_LocalError(ERROR_MOTOR_ERROR);
-        }
         return;
     }
 
@@ -564,6 +759,31 @@ void EthercatMotorControl_Update(void)
     if (command_enabled == 0U)
     {
         EthercatMotorControl_Disable();
+        EthercatMotorControl_ResetProfilePosition(axis,
+                                                  actual_position);
+        axis->Objects.objStatusWord &=
+            (UINT16)~(STATUSWORD_DRIVE_FOLLOWS_COMMAND |
+                      STATUSWORD_TARGET_REACHED |
+                      STATUSWORD_INTERNAL_LIMIT);
+        return;
+    }
+
+    /* A cyclic mode must use a complete setpoint from an application cycle,
+       not an object that may be changing during PDO output mapping. */
+    do
+    {
+        cyclic_sequence = sCyclicSetpoint.sequence;
+        cyclic_mode = sCyclicSetpoint.mode;
+        cyclic_target_position = sCyclicSetpoint.target_position;
+        cyclic_target_velocity = sCyclicSetpoint.target_velocity;
+        cyclic_cycle_time_us = sCyclicSetpoint.cycle_time_us;
+    } while (cyclic_sequence != sCyclicSetpoint.sequence);
+
+    if (((requested_mode == CYCLIC_SYNC_POSITION_MODE) ||
+         (requested_mode == CYCLIC_SYNC_VELOCITY_MODE)) &&
+        ((cyclic_sequence == 0U) || (cyclic_mode != requested_mode)))
+    {
+        EthercatMotorControl_Disable();
         axis->Objects.objStatusWord &=
             (UINT16)~(STATUSWORD_DRIVE_FOLLOWS_COMMAND |
                       STATUSWORD_TARGET_REACHED |
@@ -576,6 +796,10 @@ void EthercatMotorControl_Update(void)
     target_rpm = EthercatMotorControl_SelectCommand(axis,
                                                     requested_mode,
                                                     actual_position,
+                                                    cyclic_target_position,
+                                                    cyclic_target_velocity,
+                                                    cyclic_sequence,
+                                                    cyclic_cycle_time_us,
                                                     &target_reached,
                                                     &limited);
 

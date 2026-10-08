@@ -148,6 +148,13 @@ void TIM8_UP_IRQHandler(void)
         }
 
         TIM_ClrIntPendingBit(TIM8, TIM_INT_UPDATE);
+        ErrorHandle();
+        if (ErrNumFlag != 0U)
+        {
+            /* The detector has zeroed PWM; do not run the control algorithm. */
+        }
+        else
+        {
 #if PWM_COE_TEST_MODE == 1U
         /* Keep TIM8/ADC running while preventing motor phase output. */
         UpPwm(0U, 0U, 0U, 0U);
@@ -155,6 +162,7 @@ void TIM8_UP_IRQHandler(void)
         /* Mode 2 still runs the full algorithm; hardware PWM outputs stay off. */
         MainFunt();
 #endif
+        }
         PwmFlag = 1U;
 
         if (gMotorCycleCounterAvailable != 0U)

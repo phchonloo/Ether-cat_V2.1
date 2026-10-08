@@ -2,10 +2,11 @@
 #include "Errorhadle.h"
 
 s32 ErrMoudleNum=0,ErrTemNum=0,ErrVolHNum=0,ErrVolLNum=0;
-u8 	ErrNumFlag=0;
+volatile u8 ErrNumFlag=0;
+u16 u16VendorErrorCode=0;
 u8 	ErrFlag=0;
-u32 LedErrorC=0; 			//Ò»¸öÖÜÆÚÄÚÉÁË¸´ÎÊýµÄµ¹Êý(Ò»´ÎÉÁË¸Ê±¼ä)
-u32 LedPerriodTime_2=0;		//ÉÁË¸ÖÜÆÚ±äÁ¿
+u32 LedErrorC=0; 			//ä¸€ä¸ªå‘¨æœŸå†…é—ªçƒæ¬¡æ•°çš„å€’æ•°(ä¸€æ¬¡é—ªçƒæ—¶é—´)
+u32 LedPerriodTime_2=0;		//é—ªçƒå‘¨æœŸå˜é‡
 u8 LedError_3=0,LedMin=0;
 
 s8 ErrI[16]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},ErrI_i=15,ErrI_sum=16;
@@ -14,19 +15,20 @@ s8 ErrI[16]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},ErrI_i=15,ErrI_sum=16;
 
 void ErrorHandle(void)
 {
-	//----------ÅÐ¶ÏÄ£¿éÊÇ·ñ±£»¤----------------------------------
+	//----------åˆ¤æ–­æ¨¡å—æ˜¯å¦ä¿æŠ¤----------------------------------
 
 	ErrI_sum-=ErrI[ErrI_i];
-	ErrI[ErrI_i]=IoVfoGet();//GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12);	3¹ýÁ÷±£»¤
+	ErrI[ErrI_i]=IoVfoGet();//GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_12);	3è¿‡æµä¿æŠ¤
  	ErrI_sum+=ErrI[ErrI_i];
 	ErrI_i++;
 	if(ErrI_i>15)
 		ErrI_i=0;
 	if(ErrI_sum<=2)
-	{	ErrNumFlag=4;
-		ready_ad=0;
-//		WorkValue[4]=ErrI_sum;
-	}		
+	{
+		/* VFO is one low-active driver protection output.  It does not
+		 * identify an open motor phase or a DC-bus voltage fault. */
+		ErrorHandle_ReportFault(10U);
+	}
 
 
 
@@ -34,6 +36,37 @@ void ErrorHandle(void)
 //		LedError(ErrNumFlag);
 
 
+}
+
+void ErrorHandle_ReportFault(u8 vendor_code)
+{
+	/* Codes from the iD256-EC manual.  Other detectors may use this entry
+	 * point only after their physical measurement has been validated. */
+	if ((vendor_code != 10U) && (vendor_code != 11U) &&
+	    (vendor_code != 13U) && (vendor_code != 14U))
+	{
+		return;
+	}
+	if (ErrNumFlag == 0U)
+	{
+		ErrNumFlag = vendor_code;
+		ready_ad = 0U;
+		UpPwm(0U, 0U, 0U, 0U);
+	}
+}
+
+u8 ErrorHandle_TryReset(void)
+{
+	/* Do not acknowledge an asserted or recently asserted VFO input. */
+	if ((IoVfoGet() == 0U) || (ErrI_sum != 16))
+	{
+		return 0U;
+	}
+	ErrNumFlag = 0U;
+	u16VendorErrorCode = 0U;
+	u16ErrorRegister = 0U;
+	ErrFlag = 0U;
+	return 1U;
 }
 
 

@@ -23,6 +23,8 @@ extern volatile u8 gEcatMotorEnabled;
 
 void EthercatMotorControl_Init(void);
 void EthercatMotorControl_Update(void);
+/* Latch one coherent setpoint after SM RxPDO mapping or on DC Sync0. */
+void EthercatMotorControl_OnSyncCycle(void);
 
 /* Fixed-rate ramp and feedback helpers called from the 16 kHz motor ISR. */
 s32 EthercatMotorControl_ApplyRamp(s32 target_base_rpm);

@@ -65,6 +65,8 @@ V4.30 : create file (state machine; handling state transition options; input fee
 #define _CiA402_
 #include "cia402appl.h"
 #undef _CiA402_
+#include "EthercatMotorControl.h"
+#include "Errorhadle.h"
 
 
 /*--------------------------------------------------------------------------------------
@@ -815,7 +817,7 @@ static BOOL CiA402_HandleFaultReaction(TCiA402Axis *axis)
  * @brief Fault状态处理。
  *
  * 控制字Bit7置1，即(control_word & 0x0080) == 0x0080时，
- * 清除0x1001错误码并进入Switch On Disabled。
+ * 仅在硬件故障输入释放后清除错误并进入Switch On Disabled。
  */
 static void CiA402_HandleFault(TCiA402Axis *axis,
                                UINT16 control_word)
@@ -823,6 +825,11 @@ static void CiA402_HandleFault(TCiA402Axis *axis,
     if (!CiA402_CommandIs(control_word,
                           CONTROLWORD_COMMAND_FAULTRESET_MASK,
                           CONTROLWORD_COMMAND_FAULTRESET))
+    {
+        return;
+    }
+
+    if (ErrorHandle_TryReset() == 0U)
     {
         return;
     }
@@ -1707,6 +1714,13 @@ void APPL_OutputMapping(UINT16* pData)
         CiA402_CopyPdo(sRxPDOassign.aEntries[j], pTmpData, FALSE,
                        &processOffsetBytes);
     }
+
+    /* In SM-sync mode a new RxPDO, not a mailbox/PDI interrupt, is the
+       application cycle. DC mode takes its snapshot on Sync0 below. */
+    if (bDcSyncActive == FALSE)
+    {
+        EthercatMotorControl_OnSyncCycle();
+    }
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -1731,6 +1745,11 @@ void APPL_Application(void)
          * 电机算法应在Operation Enabled时由此处使能。
          */
         CiA402_Application(&LocalAxes[axis_index]);
+    }
+
+    if (bDcSyncActive == TRUE)
+    {
+        EthercatMotorControl_OnSyncCycle();
     }
 }
 
