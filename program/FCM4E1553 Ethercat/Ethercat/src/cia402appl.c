@@ -834,6 +834,10 @@ static void CiA402_HandleFault(TCiA402Axis *axis,
         return;
     }
 
+    if (ECAT_TryResetPdiFault() == 0U)
+    {
+        return;
+    }
     axis->Objects.objErrorCode = 0U;
     axis->i16State = STATE_SWITCH_ON_DISABLED;
 }

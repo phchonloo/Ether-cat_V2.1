@@ -5,6 +5,8 @@
 #include "cia402appl.h"
 #include "Errorhadle.h"
 #include "EcatPulsePosition.h"
+#include "qspi.h"
+#include "ecatappl.h"
 
 /* Motor fault and microstep settings are owned by the existing motor code. */
 extern s32 sxifen;
@@ -634,6 +636,12 @@ s32 EthercatMotorControl_NextPhaseStep(void)
     command.position_mode = sPulseCommand[index].position_mode;
     command.speed_limit_base = sPulseCommand[index].speed_limit_base;
 
+    if (gEscPdiDiag.faultLatched != 0U)
+    {
+        EthercatMotorControl_EmergencyStop();
+        gEcatMotorEnabled = 0U;
+        return 0;
+    }
     if ((sxifen != sPulsePosition.resolution) ||
         (gEcatPulseDiag.resolutionChanged != 0U) ||
         (gEcatPulseDiag.positionLimit != 0U))
@@ -836,6 +844,20 @@ void EthercatMotorControl_Update(void)
         return;
     }
 
+    if (gEscPdiDiag.faultLatched != 0U)
+    {
+        EthercatMotorControl_Disable();
+        EthercatMotorControl_ResetProfilePosition(axis, actual_position);
+        axis->Objects.objStatusWord &=
+            (UINT16)~STATUSWORD_DRIVE_FOLLOWS_COMMAND;
+        u16ErrorRegister |= 0x11U; /* Generic + communication error. */
+        if ((axis->bAxisIsActive != FALSE) &&
+            (axis->i16State != STATE_FAULT_REACTION_ACTIVE) &&
+            (axis->i16State != STATE_FAULT))
+            CiA402_LocalError(ERROR_COMMUNICATION);
+        return;
+    }
+
     if ((gEcatPulseDiag.positionLimit != 0U) ||
         (gEcatPulseDiag.resolutionChanged != 0U))
     {
@@ -887,6 +909,21 @@ void EthercatMotorControl_Update(void)
 
     if (command_enabled == 0U)
     {
+        if (gEcatMotorEnabled != 0U)
+        {
+            if (gEcatCommDiag.driveDisableCount != UINT32_MAX)
+                gEcatCommDiag.driveDisableCount++;
+            if (gEcatCommDiag.firstDisableValid == 0U)
+            {
+                gEcatCommDiag.firstDisableControlWord = axis->Objects.objControlWord;
+                gEcatCommDiag.firstDisableStatusWord = axis->Objects.objStatusWord;
+                gEcatCommDiag.firstDisableAlState = nAlStatus;
+                gEcatCommDiag.firstDisablePosition = actual_position;
+                gEcatCommDiag.firstDisablePdiError = gEscPdiDiag.lastError;
+                __DMB();
+                gEcatCommDiag.firstDisableValid = 1U;
+            }
+        }
         EthercatMotorControl_Disable();
         EthercatMotorControl_ResetProfilePosition(axis,
                                                   actual_position);

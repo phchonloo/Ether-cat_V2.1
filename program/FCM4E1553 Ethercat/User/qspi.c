@@ -1,21 +1,74 @@
 #include "qspi.h"
 
 #define QSPI_PDI_BUSY_TIMEOUT_LOOPS (1000U)
+#define QSPI_PDI_BUSY_TIMEOUT_US (100U)
 
 static volatile uint32_t s_qspi_timeout_count;
+volatile TEscPdiDiagnostics gEscPdiDiag = {0};
 
 static void qspi_delay(uint32_t count);
 static uint32_t qspi_wait(void);
 
 /**
- * @brief Wait for an idle QSPI bus and record a timeout for debugging.
+ * @brief Latch a PDI failure, preserve evidence and abort this transaction.
  */
-static void qspi_wait_and_record(void)
+void qspi_pdi_record_error(uint8_t reason, uint16_t address,
+                           uint16_t count, uint8_t is_write)
 {
-    if (qspi_wait() == 0U)
+    /* Called with PDI access serialized. Never print, allocate or retry here. */
+    gEscPdiDiag.faultLatched = 1U;
+    gEscPdiDiag.successSinceError = 0U;
+    gEscPdiDiag.errorEpoch++;
+    if (gEscPdiDiag.errorEpoch == 0U)
+        gEscPdiDiag.errorEpoch = 1U;
+    gEscPdiDiag.lastError = reason;
+    if (is_write != 0U)
     {
-        s_qspi_timeout_count++;
+        if (gEscPdiDiag.writeFailureCount != UINT32_MAX)
+            gEscPdiDiag.writeFailureCount++;
     }
+    else if (gEscPdiDiag.readFailureCount != UINT32_MAX)
+        gEscPdiDiag.readFailureCount++;
+    if ((reason == ESC_PDI_ERROR_IDLE_TIMEOUT) ||
+        (reason == ESC_PDI_ERROR_READ_TIMEOUT) ||
+        (reason == ESC_PDI_ERROR_WRITE_TIMEOUT))
+    {
+        if (s_qspi_timeout_count != UINT32_MAX)
+            s_qspi_timeout_count++;
+        gEscPdiDiag.timeoutCount = s_qspi_timeout_count;
+    }
+    if (gEscPdiDiag.firstError == 0U)
+    {
+        gEscPdiDiag.firstAddress = address;
+        gEscPdiDiag.firstLength = count;
+        gEscPdiDiag.firstException = (uint16_t)__get_IPSR();
+        gEscPdiDiag.firstStatus = QSPI->STS;
+        gEscPdiDiag.firstRxCount = QSPI->RXFN;
+        gEscPdiDiag.firstCycle = DWT->CYCCNT;
+        __DMB();
+        gEscPdiDiag.firstError = reason;
+    }
+    /* Abort this MCU transaction. Never reset the ESC or replay a partial
+     * write: the next access starts a new CS-framed transaction. */
+    QSPI_Cmd(DISABLE);
+    QSPI_DeInit();
+}
+
+static uint8_t qspi_wait_checked(uint16_t address, uint16_t count,
+                                 uint8_t reason, uint8_t is_write)
+{
+    if (qspi_wait() != 0U)
+        return 1U;
+    qspi_pdi_record_error(reason, address, count, is_write);
+    return 0U;
+}
+
+static void qspi_record_success(void)
+{
+    if (gEscPdiDiag.transferCount != UINT32_MAX)
+        gEscPdiDiag.transferCount++;
+    if (gEscPdiDiag.successSinceError != UINT32_MAX)
+        gEscPdiDiag.successSinceError++;
 }
 
 void qspi_init(QSPI_FORMAT_SEL qspi_format_sel,
@@ -47,16 +100,25 @@ void qspi_init(QSPI_FORMAT_SEL qspi_format_sel,
     QSPI_Cmd(ENABLE);
 }
 
-void qspi_read(uint8_t *read_buffer,
+uint8_t qspi_read(uint8_t *read_buffer,
                uint16_t address,
                uint8_t count)
 {
     QSPI_InitType qspi_init;
     uint32_t wait_cycles;
+    uint16_t requested_address = address;
+    uint8_t requested_count = count;
+
+    if ((read_buffer == 0) || (count == 0U) || (count > 4U))
+    {
+        qspi_pdi_record_error(ESC_PDI_ERROR_ARGUMENT, address, count, 0U);
+        return 0U;
+    }
 
     wait_cycles = (uint32_t)(address & 0x0003U) *
                   0x1000U;
-    qspi_wait_and_record();
+    if (qspi_wait_checked(address, count, ESC_PDI_ERROR_IDLE_TIMEOUT, 0U) == 0U)
+        return 0U;
 
     QSPI_DeInit();
     memset(&qspi_init, 0, sizeof(qspi_init));
@@ -90,22 +152,41 @@ void qspi_read(uint8_t *read_buffer,
     QspiSendWord(((uint32_t)address << 8U) | count);
     QspiSendWord(0U);
 
+    if (qspi_wait_checked(requested_address, requested_count,
+                          ESC_PDI_ERROR_READ_TIMEOUT, 0U) == 0U)
+        return 0U;
+    /* Busy=0 alone does not prove the RX FIFO contains the requested data. */
+    if (QspiReadRxFifoNum() < requested_count)
+    {
+        qspi_pdi_record_error(ESC_PDI_ERROR_RX_SHORT,
+                              requested_address, requested_count, 0U);
+        return 0U;
+    }
     while (count > 0U)
     {
-        qspi_wait_and_record();
         *read_buffer = (uint8_t)QspiReadWord();
         read_buffer++;
         count--;
     }
+    qspi_record_success();
+    return 1U;
 }
 
-void qspi_write(uint8_t *write_buffer,
+uint8_t qspi_write(uint8_t *write_buffer,
                 uint16_t address,
                 uint16_t count)
 {
     QSPI_InitType qspi_init = {0};
+    uint16_t requested_address = address;
+    uint16_t requested_count = count;
 
-    qspi_wait_and_record();
+    if ((write_buffer == 0) || (count == 0U) || (count > 4U))
+    {
+        qspi_pdi_record_error(ESC_PDI_ERROR_ARGUMENT, address, count, 1U);
+        return 0U;
+    }
+    if (qspi_wait_checked(address, count, ESC_PDI_ERROR_IDLE_TIMEOUT, 1U) == 0U)
+        return 0U;
 
     QSPI_DeInit();
     RCC_EnableAHBPeriphClk(RCC_AHB_PERIPH_QSPI,
@@ -146,31 +227,17 @@ void qspi_write(uint8_t *write_buffer,
         count--;
     }
 
-    qspi_wait_and_record();
+    if (qspi_wait_checked(requested_address, requested_count,
+                          ESC_PDI_ERROR_WRITE_TIMEOUT, 1U) == 0U)
+        return 0U;
+    qspi_record_success();
+    return 1U;
 }
 
 uint32_t qspi_read_word(uint16_t address)
 {
-    UINT32_VAL result;
-    UINT16_VAL mapped_address;
-
-    mapped_address.Val = address;
-
-    QspiSendWord(0x0BU);
-    QspiSendWord(mapped_address.byte.HB | 0x40U);
-    QspiSendWord(mapped_address.byte.LB);
-    QspiSendWord(4U);
-    QspiSendWord(0U);
-
-    QspiSendWord(0U);
-    result.byte.LB = (uint8_t)QspiReadWord();
-    QspiSendWord(0U);
-    result.byte.HB = (uint8_t)QspiReadWord();
-    QspiSendWord(0U);
-    result.byte.UB = (uint8_t)QspiReadWord();
-    QspiSendWord(0U);
-    result.byte.MB = (uint8_t)QspiReadWord();
-
+    UINT32_VAL result = {0};
+    (void)qspi_read(result.v, address, 4U);
     return result.Val;
 }
 
@@ -186,6 +253,9 @@ static void qspi_delay(uint32_t count)
 static uint32_t qspi_wait(void)
 {
     uint32_t timeout;
+    uint32_t start = DWT->CYCCNT;
+    uint32_t budget = (SystemCoreClock / 1000000U) * QSPI_PDI_BUSY_TIMEOUT_US;
+    uint8_t timed = ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) != 0U) ? 1U : 0U;
 
     timeout = 0U;
     qspi_delay(5U);
@@ -193,7 +263,8 @@ static uint32_t qspi_wait(void)
     while (GetQspiBusyStatus())
     {
         timeout++;
-        if (timeout >= QSPI_PDI_BUSY_TIMEOUT_LOOPS)
+        if ((timeout >= QSPI_PDI_BUSY_TIMEOUT_LOOPS) ||
+            ((timed != 0U) && ((DWT->CYCCNT - start) >= budget)))
         {
             return 0U;
         }

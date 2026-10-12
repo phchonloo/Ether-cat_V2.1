@@ -197,12 +197,12 @@ PROTO void HW_ResetALEventMask(UINT16 intMask);
 PROTO void HW_SetALEventMask(UINT16 intMask);
 PROTO void HW_SetLed(UINT8 RunLed,UINT8 ErrLed);
 
-PROTO void HW_EscRead( MEM_ADDR * pData, UINT16 Address, UINT16 Len );
-PROTO void HW_EscReadIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len );
+PROTO UINT8 HW_EscRead( MEM_ADDR * pData, UINT16 Address, UINT16 Len );
+PROTO UINT8 HW_EscReadIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len );
 
-PROTO void HW_EscWrite( MEM_ADDR *pData, UINT16 Address, UINT16 Len );
+PROTO UINT8 HW_EscWrite( MEM_ADDR *pData, UINT16 Address, UINT16 Len );
 
-PROTO void HW_EscWriteIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len );
+PROTO UINT8 HW_EscWriteIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len );
 
 PROTO void HW_DisableSyncManChannel(UINT8 channel);
 PROTO void HW_EnableSyncManChannel(UINT8 channel);

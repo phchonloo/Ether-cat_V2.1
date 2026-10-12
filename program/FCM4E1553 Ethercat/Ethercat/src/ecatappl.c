@@ -152,6 +152,7 @@ V4.00 APPL 6: The main function was split in MainInit and MainLoop
 /*ECATCHANGE_START(V5.13) CIA402 3*/
 //#include "el9800appl.h"
 #include "cia402appl.h"
+#include "qspi.h"
 
 
 /*--------------------------------------------------------------------------------------
@@ -201,6 +202,37 @@ UINT16           aPdInputData[(MAX_PD_INPUT_SIZE>>1)];
 
 BOOL bInitFinished = FALSE; /** < \brief indicates if the initialization is finished*/
 volatile TECAT_SYNC_DIAGNOSTICS gEcatSyncDiag = {0};
+volatile TECAT_COMM_DIAGNOSTICS gEcatCommDiag = {0};
+extern TCiA402Axis LocalAxes[MAX_AXES];
+
+/* Only a disabled, newly received PDO fault-reset request can re-arm motion.
+ * Recovery of the SQI bus alone never clears the inhibit. */
+UINT8 ECAT_TryResetPdiFault(void)
+{
+    UINT8 ok = 0U;
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    if (gEscPdiDiag.faultLatched == 0U)
+        ok = 1U;
+    else if (((nAlStatus & (STATE_MASK | STATE_CHANGE)) == STATE_OP) &&
+             (bEcatOutputUpdateRunning != FALSE) &&
+             (gEcatCommDiag.pdoErrorEpoch == gEscPdiDiag.errorEpoch) &&
+             (gEcatCommDiag.pdoSincePdiError >= 32U) &&
+             (gEscPdiDiag.successSinceError >= 32U) &&
+             (gEcatCommDiag.resetRequestPending != 0U) &&
+             ((LocalAxes[0].Objects.objControlWord & 0x008FU) == 0x0080U) &&
+             (LocalAxes[0].Objects.objVelocityActualValue == 0))
+    {
+        gEscPdiDiag.faultLatched = 0U;
+        gEcatCommDiag.resetLowSeen = 0U;
+        gEcatCommDiag.resetRequestPending = 0U;
+        if (gEcatCommDiag.manualResetCount != UINT32_MAX)
+            gEcatCommDiag.manualResetCount++;
+        ok = 1U;
+    }
+    __set_PRIMASK(primask);
+    return ok;
+}
 
 /*-----------------------------------------------------------------------------------------
 ------
@@ -240,7 +272,13 @@ void PDO_InputMapping(void)
 
   
     APPL_InputMapping((UINT16*)aPdInputData);
-    HW_EscWriteIsr(((MEM_ADDR *) aPdInputData), nEscAddrInputData, nPdInputSize );
+    if (HW_EscWriteIsr(((MEM_ADDR *) aPdInputData),
+                       nEscAddrInputData, nPdInputSize) == 0U)
+    {
+        if (gEcatCommDiag.pdoWriteErrorCount != UINT32_MAX)
+            gEcatCommDiag.pdoWriteErrorCount++;
+        return;
+    }
 
     
 
@@ -307,8 +345,62 @@ void PDO_OutputMapping(void)
 
    }
 
-    HW_EscReadIsr(((MEM_ADDR *)aPdOutputData), nEscAddrOutputData, nPdOutputSize );
+    if (HW_EscReadIsr(((MEM_ADDR *)aPdOutputData),
+                      nEscAddrOutputData, nPdOutputSize) == 0U)
+    {
+        if (gEcatCommDiag.pdoReadErrorCount != UINT32_MAX)
+            gEcatCommDiag.pdoReadErrorCount++;
+        return; /* Do not publish a failed/partial PDO as a new command. */
+    }
     APPL_OutputMapping((UINT16*) aPdOutputData);
+    {
+        UINT32 now = DWT->CYCCNT;
+        if ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) != 0U)
+        {
+            UINT32 gap = now - gEcatCommDiag.lastPdoCycle;
+            if ((gEcatCommDiag.pdoReadOkCount != 0U) &&
+                (gap > gEcatCommDiag.maxPdoGapCycles))
+                gEcatCommDiag.maxPdoGapCycles = gap;
+            gEcatCommDiag.lastPdoCycle = now;
+        }
+        if (gEcatCommDiag.pdoReadOkCount != UINT32_MAX)
+            gEcatCommDiag.pdoReadOkCount++;
+        if (gEcatCommDiag.pdoErrorEpoch != gEscPdiDiag.errorEpoch)
+        {
+            gEcatCommDiag.pdoErrorEpoch = gEscPdiDiag.errorEpoch;
+            gEcatCommDiag.pdoSincePdiError = 0U;
+            gEcatCommDiag.resetLowSeen = 0U;
+            gEcatCommDiag.resetRequestPending = 0U;
+        }
+        if (gEcatCommDiag.pdoSincePdiError != UINT32_MAX)
+            gEcatCommDiag.pdoSincePdiError++;
+        if (gEscPdiDiag.faultLatched != 0U)
+        {
+            UINT16 request = LocalAxes[0].Objects.objControlWord & 0x008FU;
+            if (request == 0U)
+            {
+                gEcatCommDiag.resetLowSeen = 1U;
+                gEcatCommDiag.resetRequestPending = 0U;
+            }
+            else if (request == 0x0080U)
+            {
+                /* Accept only a newly received low -> reset transition,
+                 * after recovery. A held-high/SDO-only request is not enough. */
+                if (gEcatCommDiag.resetLowSeen != 0U)
+                {
+                    gEcatCommDiag.resetRequestPending =
+                        ((gEcatCommDiag.pdoSincePdiError >= 32U) &&
+                         (gEscPdiDiag.successSinceError >= 32U)) ? 1U : 0U;
+                    gEcatCommDiag.resetLowSeen = 0U;
+                }
+            }
+            else
+            {
+                gEcatCommDiag.resetLowSeen = 0U;
+                gEcatCommDiag.resetRequestPending = 0U;
+            }
+        }
+    }
 
 
 #if ((MIN_PD_CYCLE_TIME == 0) || (PD_OUTPUT_CALC_AND_COPY_TIME == 0))

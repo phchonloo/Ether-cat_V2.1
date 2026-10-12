@@ -1,5 +1,6 @@
 #include "PwmInit.h"
 #include "EthercatMotorControl.h"
+#include "qspi.h"
 
 /*
  * CoE Online isolation test:
@@ -151,7 +152,15 @@ void TIM8_UP_IRQHandler(void)
         TIM_ClrIntPendingBit(TIM8, TIM_INT_UPDATE);
         EthercatMotorControl_BeginPhaseCycle(Iangle);
         ErrorHandle();
-        if (ErrNumFlag != 0U)
+        if (gEscPdiDiag.faultLatched != 0U)
+        {
+            /* Do not wait for foreground or a successful PDO to stop. */
+            gEcatMotorEnabled = 0U;
+            gEcatBaseRpmCommand = 0;
+            EthercatMotorControl_EmergencyStop();
+            UpPwm(0U, 0U, 0U, 0U);
+        }
+        else if (ErrNumFlag != 0U)
         {
             /* The detector has zeroed PWM; do not run the control algorithm. */
         }

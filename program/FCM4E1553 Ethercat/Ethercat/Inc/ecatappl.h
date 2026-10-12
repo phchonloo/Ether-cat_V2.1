@@ -106,6 +106,38 @@ typedef struct
 } TECAT_SYNC_DIAGNOSTICS;
 
 extern volatile TECAT_SYNC_DIAGNOSTICS gEcatSyncDiag;
+
+/* RAM evidence only. Keep first records through fault reset and ESM changes.
+ * Cycle fields use DWT CYCCNT (wraps); they are not UTC or retained uptime. */
+typedef struct
+{
+    UINT32 pdoReadOkCount;
+    UINT32 pdoReadErrorCount;
+    UINT32 pdoWriteErrorCount;
+    UINT32 lastPdoCycle;
+    UINT32 maxPdoGapCycles;
+    UINT32 pdoErrorEpoch;
+    UINT32 pdoSincePdiError;
+    UINT32 manualResetCount;
+    UINT32 alTransitionCount;
+    UINT32 driveDisableCount;
+    INT32 firstDisablePosition;
+    UINT16 firstDisableControlWord;
+    UINT16 firstDisableStatusWord;
+    UINT16 firstOpExitCode;
+    UINT16 lastAlCode;
+    UINT8 lastAlState;
+    UINT8 firstOpExitFrom;
+    UINT8 firstOpExitTo;
+    UINT8 firstOpExitValid;
+    UINT8 firstDisableAlState;
+    UINT8 firstDisablePdiError;
+    UINT8 firstDisableValid;
+    UINT8 resetLowSeen;
+    UINT8 resetRequestPending;
+} TECAT_COMM_DIAGNOSTICS;
+extern volatile TECAT_COMM_DIAGNOSTICS gEcatCommDiag;
+UINT8 ECAT_TryResetPdiFault(void);
 #endif //_ECATAPPL_H_
 
 #if defined(_ECATAPPL_) && (_ECATAPPL_ == 1)

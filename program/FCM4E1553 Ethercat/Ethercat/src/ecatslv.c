@@ -201,6 +201,7 @@ V4.00 ECAT 7: The return values for the AL-StatusCode were changed to UINT16
 
 #define    _ECATSLV_    1
 #include "ecatslv.h"
+#include "qspi.h"
 #undef    _ECATSLV_
 /*remove definition of _ECATSLV_ (#ifdef is used in ecatslv.h)*/
 
@@ -357,19 +358,26 @@ TSYNCMAN ESCMEM * GetSyncMan( UINT8 channel )
 *////////////////////////////////////////////////////////////////////////////////////////
 void DisableSyncManChannel(UINT8 channel)
 {
-    UINT16 Offset;
-    //The register 0x806 is only readable from PDI => writing 0 is valid
-    VARVOLATILE UINT16 smStatus = SM_SETTING_PDI_DISABLE;
-    Offset = (ESC_SYNCMAN_ACTIVE_OFFSET + (SIZEOF_SM_REGISTER*channel));
-
-
-    HW_EscWriteWord(smStatus,Offset);
-    
-    /*wait until SyncManager is disabled*/
-    do
+    UINT16 offset = ESC_SYNCMAN_ACTIVE_OFFSET + SIZEOF_SM_REGISTER * channel;
+    UINT16 status = SM_SETTING_PDI_DISABLE;
+    UINT16 retry;
+    if (HW_EscWriteWord(status, offset) == 0U)
+        return;
+    for (retry = 0U; retry < 256U; retry++)
     {
-        HW_EscReadWord(smStatus, Offset);
-    }while(!(smStatus & SM_SETTING_PDI_DISABLE));
+        if (HW_EscReadWord(status, offset) == 0U)
+            return;
+        if ((status & SM_SETTING_PDI_DISABLE) != 0U)
+            return;
+    }
+    /* The SSC API is void: preserve a persistent motion inhibit on failure,
+     * rather than spin forever and starve the main loop. */
+    {
+        uint32_t primask = __get_PRIMASK();
+        __disable_irq();
+        qspi_pdi_record_error(ESC_PDI_ERROR_SM_ACK, offset, 2U, 1U);
+        __set_PRIMASK(primask);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -380,20 +388,26 @@ void DisableSyncManChannel(UINT8 channel)
 *////////////////////////////////////////////////////////////////////////////////////////
 void EnableSyncManChannel(UINT8 channel)
 {
-    UINT16 Offset;
-    //The register 0x806 is only readable from PDI => writing 0 is valid
-    VARVOLATILE UINT16 smStatus = 0x0000;
-    Offset = (ESC_SYNCMAN_ACTIVE_OFFSET + (SIZEOF_SM_REGISTER*channel));
-
-
-    HW_EscWriteWord(smStatus,Offset);
-    
-    /*wait until SyncManager is enabled*/
-    do
+    UINT16 offset = ESC_SYNCMAN_ACTIVE_OFFSET + SIZEOF_SM_REGISTER * channel;
+    UINT16 status = 0U;
+    UINT16 retry;
+    if (HW_EscWriteWord(status, offset) == 0U)
+        return;
+    for (retry = 0U; retry < 256U; retry++)
     {
-        HW_EscReadWord(smStatus,Offset);
-
-    }while((smStatus & SM_SETTING_PDI_DISABLE));
+        if (HW_EscReadWord(status, offset) == 0U)
+            return;
+        if ((status & SM_SETTING_PDI_DISABLE) == 0U)
+            return;
+    }
+    /* The SSC API is void: preserve a persistent motion inhibit on failure,
+     * rather than spin forever and starve the main loop. */
+    {
+        uint32_t primask = __get_PRIMASK();
+        __disable_irq();
+        qspi_pdi_record_error(ESC_PDI_ERROR_SM_ACK, offset, 2U, 1U);
+        __set_PRIMASK(primask);
+    }
 }
 
 
@@ -1399,6 +1413,27 @@ void BackToInitTransition(void)
 void SetALStatus(UINT8 alStatus, UINT16 alStatusCode)
 {
     UINT16 Value = alStatusCode;
+
+    if (nAlStatus != alStatus)
+    {
+        if (gEcatCommDiag.alTransitionCount != UINT32_MAX)
+            gEcatCommDiag.alTransitionCount++;
+        if (((nAlStatus & STATE_MASK) == STATE_OP) &&
+            (((alStatus & STATE_MASK) != STATE_OP) ||
+             ((alStatus & STATE_CHANGE) != 0U)) &&
+            (gEcatCommDiag.firstOpExitValid == 0U))
+        {
+            gEcatCommDiag.firstOpExitFrom = nAlStatus;
+            gEcatCommDiag.firstOpExitTo = alStatus;
+            gEcatCommDiag.firstOpExitCode = (alStatusCode == 0xFFFFU) ?
+                gEcatCommDiag.lastAlCode : alStatusCode;
+            __DMB();
+            gEcatCommDiag.firstOpExitValid = 1U;
+        }
+    }
+    gEcatCommDiag.lastAlState = alStatus;
+    if (alStatusCode != 0xFFFFU)
+        gEcatCommDiag.lastAlCode = alStatusCode;
 
     /*update global status variable if required*/
     if(nAlStatus != alStatus)

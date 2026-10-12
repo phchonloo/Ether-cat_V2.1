@@ -559,55 +559,9 @@ void HW_SetLed(UINT8 RunLed,UINT8 ErrLed)
 
  \brief  This function operates the SPI read access to the EtherCAT ASIC.
 *////////////////////////////////////////////////////////////////////////////////////////
-void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
+UINT8 HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 {
-	UINT16 len = Address & 0x3;
-	UINT16 num;
-	UINT16 Length=Len;
-	UINT8 *pTmpData = (UINT8 *)pData;
-	uint8_t RxBuff[300];
-	uint8_t *ptr = RxBuff;
-
-
-	while(Len > 0)
-	{
-			num= (Len > 4) ? 4 : Len;
-			
-			if((Address & 01) && (Address & 02))
-			{
-				Address -= 3;
-				num=1;
-			}
-			else if(Address & 01)
-			{
-				Address -= 1;
-				num=1;
-			} 
-			else if (Address & 02)
-			{
-				Address -= 2;
-				num= (num&1) ? 1:2;
-			} 
-		
-		
-        {
-            uint32_t primask = EscQspiEnterCritical();
-            qspi_read(ptr,Address,4);
-            EscQspiLeaveCritical(primask);
-        }
-		
-		
-		Len -= num;
-    ptr += 4;
-    Address += 4;
-	}
-
-	for(int i=0;i<Length;i++)
-	{
-		pTmpData[i] = RxBuff[len+i];
-
-	}
-
+    return HW_EscReadIsr(pData, Address, Len);
 }
 #if INTERRUPTS_SUPPORTED
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -624,54 +578,47 @@ void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
    be called at the same time from the main function and the interrupt routine */
 //#pragma interrupt_level 1
 #endif
- void HW_EscReadIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
+UINT8 HW_EscReadIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 {
-	UINT16 len = Address & 0x3;
-	UINT16 num;
-	UINT16 Length=Len;
-	UINT8 *pTmpData = (UINT8 *)pData;
-	uint8_t RxBuff[300];
-	uint8_t *ptr = RxBuff;
-
-	while(Len > 0)
-	{
-			num= (Len > 4) ? 4 : Len;
-			
-			if((Address & 01) && (Address & 02))
-			{
-				Address -= 3;
-				num=1;
-			}
-			else if(Address & 01)
-			{
-				Address -= 1;
-				num=1;
-			} 
-			else if (Address & 02)
-			{
-				Address -= 2;
-				num= (num&1) ? 1:2;
-			} 
-		
-		
-		{
-			uint32_t primask = EscQspiEnterCritical();
-			qspi_read(ptr,Address,4);
-			EscQspiLeaveCritical(primask);
-		}
-		
-		
-	Len -= num;
-    ptr += 4;
-    Address += 4;
-	}
-
-	for(int i=0;i<Length;i++)
-	{
-		pTmpData[i] = RxBuff[len+i];
-
-	}
-
+    /* Stage the entire logical read; never expose a partially updated PDO.
+     * Current mailbox and PDO maxima are 256 bytes, plus alignment padding. */
+    UINT8 buffer[260];
+    UINT16 remaining = Len;
+    UINT16 offset = Address & 3U;
+    UINT16 cursor = 0U;
+    UINT16 aligned = Address & 0xFFFCU;
+    if (Len == 0U)
+        return 1U;
+    if ((pData == 0) || (Len > 256U) ||
+        (((UINT32)Address + Len) > 0x10000UL))
+    {
+        uint32_t primask = EscQspiEnterCritical();
+        qspi_pdi_record_error(ESC_PDI_ERROR_ARGUMENT, Address, Len, 0U);
+        EscQspiLeaveCritical(primask);
+        return 0U;
+    }
+    while (remaining != 0U)
+    {
+        UINT16 take = 4U - ((cursor == 0U) ? offset : 0U);
+        UINT8 ok;
+        uint32_t primask = EscQspiEnterCritical();
+        ok = qspi_read(&buffer[cursor], aligned, 4U);
+        EscQspiLeaveCritical(primask);
+        if (ok == 0U)
+        {
+            /* Legacy SSC callers ignore status: return deterministic zeros,
+             * not stack garbage/stale event bits. The motion latch stays set. */
+            memset((void *)pData, 0, Len);
+            return 0U;
+        }
+        if (take > remaining)
+            take = remaining;
+        remaining -= take;
+        cursor += 4U;
+        aligned += 4U;
+    }
+    memcpy((void *)pData, &buffer[offset], Len);
+    return 1U;
 }
 #endif //#if INTERRUPTS_SUPPORTED
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -682,49 +629,9 @@ void HW_EscRead( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 
   \brief  This function operates the SPI write access to the EtherCAT ASIC.
 *////////////////////////////////////////////////////////////////////////////////////////
-void HW_EscWrite( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
+UINT8 HW_EscWrite( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 {
-	  UINT16 i;
-    UINT8 *pTmpData = (UINT8 *)pData;
-
-    /* loop for all bytes to be written */
-    while ( Len )
-    {
-
-
-        i= (Len > 4) ? 4 : Len;
-
-        if(Address & 01)
-        {
-           i=1;
-        }
-        else if (Address & 02)
-        {
-           i= (i&1) ? 1:2;
-        }
-        else if (i == 03)
-        {
-            i=1;
-        }
-
-
-        /* start transmission */
-        {
-            uint32_t primask = EscQspiEnterCritical();
-            qspi_write(pTmpData, Address, i);
-            EscQspiLeaveCritical(primask);
-        }
-
-        /* next address */
-        Len -= i;
-
-        pTmpData += i;
-        Address += i;
-				
-    }
-	
-
-
+    return HW_EscWriteIsr(pData, Address, Len);
 }
 #if INTERRUPTS_SUPPORTED
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -736,47 +643,39 @@ void HW_EscWrite( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
  \brief  The SPI PDI requires an extra ESC write access functions from interrupts service routines.
         The behaviour is equal to "HW_EscWrite()"
 *////////////////////////////////////////////////////////////////////////////////////////
-void HW_EscWriteIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
+UINT8 HW_EscWriteIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
 {
-	  UINT16 i;
-    UINT8 *pTmpData = (UINT8 *)pData;
-
-    /* loop for all bytes to be written */
-    while ( Len )
+    UINT8 *data = (UINT8 *)pData;
+    if (Len == 0U)
+        return 1U;
+    if ((pData == 0) || (((UINT32)Address + Len) > 0x10000UL))
     {
-
-
-        i= (Len > 4) ? 4 : Len;
-
-        if(Address & 01)
-        {
-           i=1;
-        }
-        else if (Address & 02)
-        {
-           i= (i&1) ? 1:2;
-        }
-        else if (i == 03)
-        {
-            i=1;
-        }
-
-       
-        /* start transmission */
-
-        {
-            uint32_t primask = EscQspiEnterCritical();
-            qspi_write(pTmpData, Address, i);
-            EscQspiLeaveCritical(primask);
-        }
-
-        /* next address */
-        Len -= i;
-
-        pTmpData += i;
-        Address += i;
-				
+        uint32_t primask = EscQspiEnterCritical();
+        qspi_pdi_record_error(ESC_PDI_ERROR_ARGUMENT, Address, Len, 1U);
+        EscQspiLeaveCritical(primask);
+        return 0U;
     }
+    while (Len != 0U)
+    {
+        UINT16 take = (Len > 4U) ? 4U : Len;
+        UINT8 ok;
+        uint32_t primask;
+        if (Address & 1U)
+            take = 1U;
+        else if (Address & 2U)
+            take = (take & 1U) ? 1U : 2U;
+        else if (take == 3U)
+            take = 1U;
+        primask = EscQspiEnterCritical();
+        ok = qspi_write(data, Address, take);
+        EscQspiLeaveCritical(primask);
+        if (ok == 0U)
+            return 0U; /* A partial ESC write cannot be rolled back or retried. */
+        Len -= take;
+        data += take;
+        Address += take;
+    }
+    return 1U;
 }
 
 #endif
