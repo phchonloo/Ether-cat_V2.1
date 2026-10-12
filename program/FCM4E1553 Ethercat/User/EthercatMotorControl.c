@@ -4,6 +4,7 @@
 #include "applInterface.h"
 #include "cia402appl.h"
 #include "Errorhadle.h"
+#include "EcatPulsePosition.h"
 
 /* Motor fault and microstep settings are owned by the existing motor code. */
 extern s32 sxifen;
@@ -21,10 +22,11 @@ extern TCiA402Axis LocalAxes[MAX_AXES];
 #define ECAT_CONTROLWORD_RELATIVE       0x0040U
 #define ECAT_CONTROLWORD_HALT           0x0100U
 #define ECAT_STATUSWORD_MODE_BIT12      0x1000U
-#define ECAT_POSITION_TOLERANCE         1L
 #define ECAT_DEFAULT_MICROSTEPS_PER_REV 1000L
 #define ECAT_DEFAULT_SYNC_CYCLE_US      1000U
-#define ECAT_CSP_FOLLOWING_TIME_MS      50L
+/* A 20 ms phase follower smooths quantized 2 ms PDO positions.  It uses
+ * phase units, not integer-rpm feed-forward or rounded position feedback. */
+#define ECAT_CSP_FILTER_TICKS           (ECAT_MOTOR_CONTROL_HZ / 50L)
 
 typedef struct
 {
@@ -42,14 +44,35 @@ static volatile s32 sPositionActual = 0;
 static volatile s32 sVelocityActualRpm = 0;
 static volatile s32 sAppliedBaseRpm = 0;
 static s32 sRampAccumulator = 0;
-static signed long long sPositionRemainder = 0;
+static s32 sCspStepFraction = 0;
+static TEcatPulsePosition sPulsePosition;
+static signed long long sForegroundPhase = 0;
+static volatile UINT32 sFeedbackSequence = 0U;
+static volatile signed long long sPhaseFeedback = 0;
+static s32 sPhaseBefore = 0;
+static s32 sPreparedPhaseStep = 0;
+static u8 sPhasePrepared = 0U;
+static signed long long sPreparedTargetPhase = 0;
+static u8 sPreparedPositionMode = 0U;
+volatile TEcatPulseDiagnostics gEcatPulseDiag = {0};
+
+typedef struct
+{
+    signed long long target_phase;
+    s32 base_rpm;
+    INT32 target_position;
+    INT16 mode;
+    u8 position_mode;
+    s32 speed_limit_base;
+} TMotorPulseCommand;
+/* Foreground writes the inactive slot; a single 32-bit publication selects it.
+ * TIM8 is the highest-priority ISR, so it never waits for a preempted writer. */
+static volatile TMotorPulseCommand sPulseCommand[2];
+static volatile UINT32 sPulseCommandIndex = 0U;
 static INT16 sLastMode = NO_MODE;
 static INT32 sProfilePositionTarget = 0;
 static u8 sProfilePositionSetpointSeen = 0U;
 static volatile TCyclicSetpoint sCyclicSetpoint;
-static UINT32 sLastCspSequence = 0U;
-static INT32 sPreviousCspTarget = 0;
-static s32 sCspFeedForwardRpm = 0;
 
 static s32 EthercatMotorControl_ClampRpm(s32 target_rpm)
 {
@@ -162,8 +185,6 @@ static void EthercatMotorControl_Disable(void)
     gEcatBaseRpmCommand = 0;
     /* Re-entering OP must wait for a fresh cyclic setpoint. */
     sCyclicSetpoint.sequence = 0U;
-    sLastCspSequence = 0U;
-    sCspFeedForwardRpm = 0;
 }
 
 static void EthercatMotorControl_ResetProfilePosition(TCiA402Axis *axis,
@@ -185,27 +206,32 @@ static s32 EthercatMotorControl_PositionCommand(INT32 target_position,
 {
     signed long long error;
     signed long long absolute_error;
+    signed long long phase_error;
+    signed long long phase_distance;
     signed long long rpm;
     signed long long braking_speed_squared;
     s32 braking_rpm;
     s32 resolution;
 
-    error = (signed long long)target_position -
-            (signed long long)actual_position;
-    absolute_error = (error < 0) ? -error : error;
-
-    if (absolute_error <= ECAT_POSITION_TOLERANCE)
+    (void)actual_position;
+    resolution = sPulsePosition.resolution;
+    phase_error = EcatPulse_TargetPhase(target_position, resolution) -
+                  sForegroundPhase;
+    if (phase_error == 0)
     {
         *target_reached = 1U;
         return 0;
     }
 
     *target_reached = 0U;
-    resolution = sxifen;
-    if (resolution <= 0)
-    {
-        resolution = ECAT_DEFAULT_MICROSTEPS_PER_REV;
-    }
+    /* Remaining emitted-count budget, rounded UP for the speed planner.
+     * The ISR, not this rpm calculation, clips the last excitation increment. */
+    error = phase_error;
+    phase_distance = (error < 0) ? -error : error;
+    absolute_error = (phase_distance / ECAT_PHASE_UNITS_PER_REV) * resolution;
+    absolute_error += ((phase_distance % ECAT_PHASE_UNITS_PER_REV) *
+                      resolution + ECAT_PHASE_UNITS_PER_REV - 1) /
+                      ECAT_PHASE_UNITS_PER_REV;
 
     /*
      * Use the configured profile velocity while there is enough distance
@@ -218,7 +244,7 @@ static s32 EthercatMotorControl_PositionCommand(INT32 target_position,
     /*
      * Do not request a speed whose open-loop stopping distance is longer
      * than the remaining position error.  This keeps the velocity ramp from
-     * carrying the estimated position through the target and oscillating.
+     * carrying the counted position through the target and oscillating.
      * d[steps] = rpm^2 * steps_per_rev / (120 * decel[rpm/s]).
      */
     braking_speed_squared =
@@ -314,91 +340,24 @@ static s32 EthercatMotorControl_CyclicPosition(TCiA402Axis *axis,
                                                u8 *target_reached,
                                                u8 *limited)
 {
-    signed long long error;
-    signed long long correction;
+    signed long long remaining;
     signed long long command;
-    signed long long feed_forward;
-    signed long long denominator;
-    UINT32 elapsed_cycles;
     s32 speed_limit;
-    s32 resolution;
-    s32 stationary_command;
-
+    (void)actual_position;
+    (void)sequence;
+    (void)cycle_time_us;
     speed_limit = EthercatMotorControl_ProfileVelocityLimit(
         axis->Objects.objProfileVelocity);
-    resolution = sxifen;
-    if (resolution <= 0)
-    {
-        resolution = ECAT_DEFAULT_MICROSTEPS_PER_REV;
-    }
-
-    if (sequence != sLastCspSequence)
-    {
-        elapsed_cycles = sequence - sLastCspSequence;
-        if ((sLastCspSequence == 0U) || (elapsed_cycles > 100U))
-        {
-            /* Do not infer a velocity from an initial or stale target. */
-            sCspFeedForwardRpm = 0;
-        }
-        else
-        {
-            if (cycle_time_us == 0U)
-            {
-                cycle_time_us = ECAT_DEFAULT_SYNC_CYCLE_US;
-            }
-            denominator = (signed long long)resolution *
-                          (signed long long)cycle_time_us *
-                          (signed long long)elapsed_cycles;
-            feed_forward =
-                ((signed long long)target_position -
-                 (signed long long)sPreviousCspTarget) *
-                60000000LL / denominator;
-            if (feed_forward > speed_limit)
-            {
-                feed_forward = speed_limit;
-                *limited = 1U;
-            }
-            else if (feed_forward < -speed_limit)
-            {
-                feed_forward = -speed_limit;
-                *limited = 1U;
-            }
-
-            /* Smooth one-step PDO quantization at low speeds. */
-            sCspFeedForwardRpm =
-                (7 * sCspFeedForwardRpm + (s32)feed_forward) / 8;
-        }
-        sPreviousCspTarget = target_position;
-        sLastCspSequence = sequence;
-    }
-
-    error = (signed long long)target_position -
-            (signed long long)actual_position;
-    *target_reached =
-        ((error >= -ECAT_POSITION_TOLERANCE) &&
-         (error <= ECAT_POSITION_TOLERANCE) &&
-         (sCspFeedForwardRpm == 0) &&
-         (sVelocityActualRpm == 0)) ? 1U : 0U;
-
-    if (sCspFeedForwardRpm == 0)
-    {
-        /* Hold a stationary target with the existing braking limiter. */
-        stationary_command = EthercatMotorControl_PositionCommand(
-            target_position, actual_position, speed_limit,
-            target_reached, limited);
-        if (sVelocityActualRpm != 0)
-        {
-            *target_reached = 0U;
-        }
-        return stationary_command;
-    }
-
-    /* CSP follows the master's trajectory: velocity feed-forward plus
-       a bounded position-error correction, both in rpm. */
-    correction = error * 60000LL /
-                 ((signed long long)resolution *
-                  ECAT_CSP_FOLLOWING_TIME_MS);
-    command = (signed long long)sCspFeedForwardRpm + correction;
+    remaining = EcatPulse_TargetPhase(target_position,
+                                      sPulsePosition.resolution) -
+                sForegroundPhase;
+    *target_reached = ((remaining == 0) &&
+                      (sVelocityActualRpm == 0)) ? 1U : 0U;
+    /* Diagnostic rpm only. TIM8 calculates the full-resolution phase rate
+     * from its own current phase, with fractional accumulation below 1 rpm.
+     * No previous target/velocity is carried across a target reversal. */
+    command = remaining / (ECAT_CSP_FILTER_TICKS *
+                           ECAT_MOTOR_BASE_UNITS_PER_RPM);
     if (command > speed_limit)
     {
         command = speed_limit;
@@ -409,7 +368,6 @@ static s32 EthercatMotorControl_CyclicPosition(TCiA402Axis *axis,
         command = -speed_limit;
         *limited = 1U;
     }
-
     return (s32)command;
 }
 
@@ -487,13 +445,28 @@ void EthercatMotorControl_OnSyncCycle(void)
 void EthercatMotorControl_Init(void)
 {
     TCiA402Axis *axis = &LocalAxes[0];
+    s32 resolution = sxifen;
 
     EthercatMotorControl_Disable();
     sPositionActual = 0;
     sVelocityActualRpm = 0;
     sAppliedBaseRpm = 0;
     sRampAccumulator = 0;
-    sPositionRemainder = 0;
+    sCspStepFraction = 0;
+    memset((void *)&gEcatPulseDiag, 0, sizeof(gEcatPulseDiag));
+    if ((resolution <= 0) || (resolution > ECAT_PULSE_MAX_RESOLUTION))
+    {
+        resolution = ECAT_DEFAULT_MICROSTEPS_PER_REV;
+        gEcatPulseDiag.resolutionChanged = 1U;
+    }
+    EcatPulse_Reset(&sPulsePosition, resolution);
+    gEcatPulseDiag.resolution = resolution;
+    sPhaseFeedback = 0;
+    sForegroundPhase = 0;
+    sFeedbackSequence = 0U;
+    sPhasePrepared = 0U;
+    memset((void *)sPulseCommand, 0, sizeof(sPulseCommand));
+    sPulseCommandIndex = 0U;
     sLastMode = NO_MODE;
     sProfilePositionTarget = 0;
     sProfilePositionSetpointSeen = 1U;
@@ -502,9 +475,6 @@ void EthercatMotorControl_Init(void)
     sCyclicSetpoint.target_position = 0;
     sCyclicSetpoint.target_velocity = 0;
     sCyclicSetpoint.mode = NO_MODE;
-    sLastCspSequence = 0U;
-    sPreviousCspTarget = 0;
-    sCspFeedForwardRpm = 0;
 
     /* 0x1600/0x1A00 carry position, velocity and 0x6060 mode selection. */
     sRxPDOassign.u16SubIndex0 = 1U;
@@ -610,46 +580,194 @@ void EthercatMotorControl_EmergencyStop(void)
 {
     sAppliedBaseRpm = 0;
     sRampAccumulator = 0;
+    sCspStepFraction = 0;
 }
 
-void EthercatMotorControl_FastUpdate(s32 applied_base_rpm)
+void EthercatMotorControl_BeginPhaseCycle(s32 angle)
 {
-    signed long long denominator;
-    s32 resolution;
+    sPhaseBefore = angle;
+    sPhasePrepared = 0U;
+}
 
-    sVelocityActualRpm =
-        applied_base_rpm / ECAT_MOTOR_BASE_UNITS_PER_RPM;
-
-    /* A stopped motor cannot advance position; avoid 64-bit work at 16 kHz. */
-    if (applied_base_rpm == 0)
+static s32 EthercatMotorControl_CspPhaseRate(
+    signed long long remaining, s32 maximum_step)
+{
+    s32 numerator;
+    s32 step;
+    s32 threshold = maximum_step * ECAT_CSP_FILTER_TICKS;
+    if (remaining > threshold)
     {
-        return;
+        sCspStepFraction = 0;
+        return maximum_step;
     }
-
-    resolution = sxifen;
-    if (resolution <= 0)
+    if (remaining < -threshold)
     {
-        resolution = ECAT_DEFAULT_MICROSTEPS_PER_REV;
+        sCspStepFraction = 0;
+        return -maximum_step;
     }
-
-    denominator =
-        (signed long long)ECAT_MOTOR_BASE_UNITS_PER_RPM *
-        60LL * (signed long long)ECAT_MOTOR_CONTROL_HZ;
-    sPositionRemainder +=
-        (signed long long)applied_base_rpm *
-        (signed long long)resolution;
-
-    while (sPositionRemainder >= denominator)
+    if (remaining == 0)
     {
-        sPositionRemainder -= denominator;
-        sPositionActual++;
+        sCspStepFraction = 0;
+        return 0;
     }
+    if (((remaining > 0) && (sCspStepFraction < 0)) ||
+        ((remaining < 0) && (sCspStepFraction > 0)))
+        sCspStepFraction = 0;
+    /* Once bounded above, the hot path needs only 32-bit division.
+     * Retain the sub-unit remainder so a tiny error finishes exactly,
+     * without a minimum-1-rpm kick at a stationary endpoint. */
+    numerator = (s32)remaining + sCspStepFraction;
+    step = numerator / ECAT_CSP_FILTER_TICKS;
+    sCspStepFraction = numerator % ECAT_CSP_FILTER_TICKS;
+    return step;
+}
 
-    while (sPositionRemainder <= -denominator)
+s32 EthercatMotorControl_NextPhaseStep(void)
+{
+    UINT32 index = sPulseCommandIndex;
+    TMotorPulseCommand command;
+    s32 step;
+    command.target_phase = sPulseCommand[index].target_phase;
+    command.base_rpm = sPulseCommand[index].base_rpm;
+    command.target_position = sPulseCommand[index].target_position;
+    command.mode = sPulseCommand[index].mode;
+    command.position_mode = sPulseCommand[index].position_mode;
+    command.speed_limit_base = sPulseCommand[index].speed_limit_base;
+
+    if ((sxifen != sPulsePosition.resolution) ||
+        (gEcatPulseDiag.resolutionChanged != 0U) ||
+        (gEcatPulseDiag.positionLimit != 0U))
     {
-        sPositionRemainder += denominator;
-        sPositionActual--;
+        if (sxifen != sPulsePosition.resolution)
+            gEcatPulseDiag.resolutionChanged = 1U;
+        EthercatMotorControl_EmergencyStop();
+        gEcatMotorEnabled = 0U;
+        return 0;
     }
+    if (command.mode == CYCLIC_SYNC_POSITION_MODE)
+        step = EthercatMotorControl_CspPhaseRate(command.target_phase -
+                    sPulsePosition.phase, command.speed_limit_base);
+    else
+        step = command.base_rpm;
+    if ((command.mode == CYCLIC_SYNC_POSITION_MODE) &&
+        (step >= -1) && (step <= 1) &&
+        (sAppliedBaseRpm >= -1) && (sAppliedBaseRpm <= 1))
+    {
+        /* Preserve the phase follower's fractional 0/1-unit pulses.
+         * Running each isolated unit through the integer acceleration ramp
+         * would erase it forever. One unit is only 1/15360000 revolution. */
+        sAppliedBaseRpm = step;
+        sRampAccumulator = 0;
+    }
+    else
+        step = EthercatMotorControl_ApplyRamp(step);
+    if ((command.mode == CYCLIC_SYNC_POSITION_MODE) &&
+        (((step > 0) && (command.target_phase < sPulsePosition.phase)) ||
+         ((step < 0) && (command.target_phase > sPulsePosition.phase))))
+    {
+        /* Old ramp direction must not travel away from a new CSP target.
+         * A commanded reversal resumes after the rate planner crosses zero. */
+        step = 0;
+        if (gEcatPulseDiag.blockedAwayCount < UINT32_MAX)
+            gEcatPulseDiag.blockedAwayCount++;
+    }
+    step = EcatPulse_LimitStep(&sPulsePosition, command.target_phase,
+                              step, command.position_mode);
+    /* PP can stop its ramp at the endpoint. CSP keeps the rate planner alive
+     * between successive targets; resetting it every PDO would cause stutter. */
+    if ((command.position_mode != 0U) &&
+        (command.target_phase == sPulsePosition.phase) &&
+        (command.mode == PROFILE_POSITION_MODE))
+        EthercatMotorControl_EmergencyStop();
+    sPreparedPhaseStep = step;
+    sPreparedTargetPhase = command.target_phase;
+    sPreparedPositionMode = command.position_mode;
+    sPhasePrepared = 1U;
+    gEcatPulseDiag.targetPosition = command.target_position;
+    gEcatPulseDiag.requestedPhaseStep = step;
+    return step;
+}
+
+void EthercatMotorControl_EndPhaseCycle(s32 angle)
+{
+    s32 step = angle - sPhaseBefore;
+    s32 step_delta;
+    if (step > ECAT_PHASE_UNITS_PER_CYCLE / 2)
+        step -= ECAT_PHASE_UNITS_PER_CYCLE;
+    else if (step < -ECAT_PHASE_UNITS_PER_CYCLE / 2)
+        step += ECAT_PHASE_UNITS_PER_CYCLE;
+    if (sPhasePrepared == 0U)
+    {
+        if (gEcatPulseDiag.skippedCycles < UINT32_MAX)
+            gEcatPulseDiag.skippedCycles++;
+    }
+    else
+    {
+        if (gEcatPulseDiag.countedCycles < UINT32_MAX)
+            gEcatPulseDiag.countedCycles++;
+        if ((step != sPreparedPhaseStep) &&
+            (gEcatPulseDiag.mismatchCount < UINT32_MAX))
+            gEcatPulseDiag.mismatchCount++;
+    }
+    /* No movement is fabricated when MainFunt skipped PhaseGet.
+     * The fractional count is retained across stop/restart and reversals. */
+    if ((step != 0) && (EcatPulse_Advance(&sPulsePosition, step) == 0U))
+    {
+        gEcatPulseDiag.positionLimit = 1U;
+        gEcatMotorEnabled = 0U;
+        EthercatMotorControl_EmergencyStop();
+    }
+    sPositionActual = EcatPulse_Position(&sPulsePosition);
+    sVelocityActualRpm = step / ECAT_MOTOR_BASE_UNITS_PER_RPM;
+    sPhaseFeedback = sPulsePosition.phase;
+    gEcatPulseDiag.countedPosition = sPositionActual;
+    step_delta = step - gEcatPulseDiag.lastPhaseStep;
+    if (step_delta < 0)
+        step_delta = -step_delta;
+    if ((UINT32)step_delta > gEcatPulseDiag.maxStepDelta)
+        gEcatPulseDiag.maxStepDelta = (UINT32)step_delta;
+    gEcatPulseDiag.lastPhaseStep = step;
+    if ((step > 0) && (gEcatPulseDiag.positiveStepCycles < UINT32_MAX))
+        gEcatPulseDiag.positiveStepCycles++;
+    else if ((step < 0) && (gEcatPulseDiag.negativeStepCycles < UINT32_MAX))
+        gEcatPulseDiag.negativeStepCycles++;
+    gEcatPulseDiag.atTarget = ((sPhasePrepared != 0U) &&
+        (sPreparedPositionMode != 0U) &&
+        (sPulsePosition.phase == sPreparedTargetPhase)) ? 1U : 0U;
+    __DMB();
+    sFeedbackSequence++;
+}
+
+static void EthercatMotorControl_ReadFeedback(s32 *position, s32 *velocity)
+{
+    UINT32 sequence;
+    do
+    {
+        sequence = sFeedbackSequence;
+        sForegroundPhase = sPhaseFeedback;
+        *position = sPositionActual;
+        *velocity = sVelocityActualRpm;
+        __DMB();
+    } while (sequence != sFeedbackSequence);
+}
+
+static void EthercatMotorControl_PublishPulseCommand(
+    INT16 mode, INT32 target_position, s32 target_rpm, u8 position_mode)
+{
+    UINT32 next = sPulseCommandIndex ^ 1U;
+    sPulseCommand[next].target_phase =
+        EcatPulse_TargetPhase(target_position, sPulsePosition.resolution);
+    sPulseCommand[next].target_position = target_position;
+    sPulseCommand[next].base_rpm =
+        target_rpm * ECAT_MOTOR_BASE_UNITS_PER_RPM;
+    sPulseCommand[next].mode = mode;
+    sPulseCommand[next].position_mode = position_mode;
+    sPulseCommand[next].speed_limit_base =
+        EthercatMotorControl_ProfileVelocityLimit(
+            LocalAxes[0].Objects.objProfileVelocity) *
+        ECAT_MOTOR_BASE_UNITS_PER_RPM;
+    __DMB();
+    sPulseCommandIndex = next;
 }
 
 void EthercatMotorControl_Update(void)
@@ -662,6 +780,9 @@ void EthercatMotorControl_Update(void)
     UINT32 cyclic_sequence;
     UINT32 cyclic_cycle_time_us;
     s32 actual_position;
+    s32 actual_velocity;
+    INT32 pulse_target;
+    u8 position_mode;
     s32 target_rpm;
     u8 command_enabled;
     u8 target_reached;
@@ -669,10 +790,10 @@ void EthercatMotorControl_Update(void)
     u8 fault_code;
     UINT16 cia_error_code;
 
-    actual_position = sPositionActual;
+    EthercatMotorControl_ReadFeedback(&actual_position, &actual_velocity);
     axis->Objects.objPositionActualValue = (INT32)actual_position;
     axis->Objects.objVelocityActualValue =
-        (INT32)sVelocityActualRpm;
+        (INT32)actual_velocity;
     axis->Objects.objSupportedDriveModes =
         ECAT_SUPPORTED_DRIVE_MODES;
 
@@ -715,6 +836,16 @@ void EthercatMotorControl_Update(void)
         return;
     }
 
+    if ((gEcatPulseDiag.positionLimit != 0U) ||
+        (gEcatPulseDiag.resolutionChanged != 0U))
+    {
+        EthercatMotorControl_Disable();
+        axis->Objects.objStatusWord |= STATUSWORD_INTERNAL_LIMIT;
+        axis->Objects.objStatusWord &=
+            (UINT16)~STATUSWORD_DRIVE_FOLLOWS_COMMAND;
+        return;
+    }
+
     requested_mode = axis->Objects.objModesOfOperation;
     if (EthercatMotorControl_ModeSupported(requested_mode) != 0U)
     {
@@ -742,8 +873,6 @@ void EthercatMotorControl_Update(void)
                       STATUSWORD_INTERNAL_LIMIT);
         EthercatMotorControl_ResetProfilePosition(axis,
                                                   actual_position);
-        sLastCspSequence = 0U;
-        sCspFeedForwardRpm = 0;
         sLastMode = requested_mode;
         return;
     }
@@ -823,6 +952,16 @@ void EthercatMotorControl_Update(void)
             (UINT16)~STATUSWORD_INTERNAL_LIMIT;
     }
 
+    position_mode = ((requested_mode == PROFILE_POSITION_MODE) ||
+                     (requested_mode == CYCLIC_SYNC_POSITION_MODE)) ? 1U : 0U;
+    pulse_target = (requested_mode == PROFILE_POSITION_MODE) ?
+                   sProfilePositionTarget : cyclic_target_position;
+    /* PP Halt decelerates without creeping toward its suspended endpoint. */
+    if ((requested_mode == PROFILE_POSITION_MODE) &&
+        ((axis->Objects.objControlWord & ECAT_CONTROLWORD_HALT) != 0U))
+        position_mode = 0U;
+    EthercatMotorControl_PublishPulseCommand(
+        requested_mode, pulse_target, target_rpm, position_mode);
     /* Publish command first and enable last for an atomic ISR hand-off. */
     gEcatBaseRpmCommand =
         target_rpm * ECAT_MOTOR_BASE_UNITS_PER_RPM;

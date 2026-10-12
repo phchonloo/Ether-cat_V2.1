@@ -82,6 +82,30 @@ V5.01 : Start file change log
 #define     ALIGN13(x)                 UINT16 x:13; /**< \brief Macro to define ALIGN13 object entry*/
 #define     ALIGN14(x)                 UINT16 x:14; /**< \brief Macro to define ALIGN14 object entry*/
 #define     ALIGN15(x)                 UINT16 x:15; /**< \brief Macro to define ALIGN15 object entry*/
+/* Debug-only counters and first OP synchronization failure; retained across ESM transitions. */
+typedef struct
+{
+    UINT32 pdiIsrCount;
+    UINT32 outputEventCount;
+    UINT32 lateOutputEventCount;
+    UINT32 outputRetriggerCount;
+    UINT16 lastEntryEvent;
+    UINT16 lastPendingEvent;
+    UINT16 firstEntryEvent;
+    UINT16 firstPendingEvent;
+    UINT16 firstSmSync0Counter;
+    UINT16 firstSmSync0Limit;
+    UINT16 firstSmEventMissedCounter;
+    UINT16 firstSyncErrorLimit;
+    UINT16 firstCycleExceededCounter;
+    UINT16 firstSync0WdCounter;
+    UINT16 firstSync0WdLimit;
+    BOOL firstDcRunning;
+    BOOL firstSequenceValid;
+    UINT16 firstAlStatusCode; /* Written last: zero means no OP sync failure latched. */
+} TECAT_SYNC_DIAGNOSTICS;
+
+extern volatile TECAT_SYNC_DIAGNOSTICS gEcatSyncDiag;
 #endif //_ECATAPPL_H_
 
 #if defined(_ECATAPPL_) && (_ECATAPPL_ == 1)
@@ -117,6 +141,7 @@ PROTO BOOL bRunApplication; /**< \brief Indicates if the stack shall be running 
 
 PROTO    void       ECAT_CheckTimer(void);
 PROTO    void       PDI_Isr(void);
+PROTO    void       ECAT_RecordSyncError(UINT16 alStatusCode);
 PROTO    void       Sync0_Isr(void);
 PROTO    void       Sync1_Isr(void);
 PROTO    void       ECAT_Application(void);

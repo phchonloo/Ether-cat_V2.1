@@ -47,8 +47,7 @@ void PulseFunction(void)
     if ((gEcatMotorEnabled != 0U) &&
         ((nAlStatus & STATE_MASK) == STATE_OP))
     {
-        BaseRpm = EthercatMotorControl_ApplyRamp(
-            gEcatBaseRpmCommand);
+        BaseRpm = EthercatMotorControl_NextPhaseStep();
     }
     else
     {
@@ -56,9 +55,10 @@ void PulseFunction(void)
         BaseRpm = 0;
     }
 
-    EthercatMotorControl_FastUpdate(BaseRpm);
+    /* Count feedback after MotorFunc has actually advanced Iangle. */
 }
 
+//速度模式定位
 void RAMRUN WorkSelf(void)
 {
     s32 local_speed_index;
@@ -107,6 +107,7 @@ void RAMRUN WorkSelf(void)
 }
 
 /* WolkMode > 2: run one fixed travel profile. */
+//定位函数
 void RAMRUN PulseSet(void)
 {
     u32 pulse_count;

@@ -200,6 +200,7 @@ UINT16           aPdInputData[(MAX_PD_INPUT_SIZE>>1)];
     extern VARVOLATILE UINT16    u16dummy;
 
 BOOL bInitFinished = FALSE; /** < \brief indicates if the initialization is finished*/
+volatile TECAT_SYNC_DIAGNOSTICS gEcatSyncDiag = {0};
 
 /*-----------------------------------------------------------------------------------------
 ------
@@ -453,121 +454,182 @@ UINT32 GetSystemTimeDelay(UINT32 u32StartTime)
 
 /*ECATCHANGE_START(V5.13) ECAT1*/
 /*ECATCHANGE_END(V5.13) ECAT1*/
+/*
+ * Acknowledge an output event by mapping the complete PDO in OP, rather than
+ * discarding a first PDO that arrived after the ISR entry snapshot.
+ */
+static void PDI_ProcessOutputEvent(void)
+{
+    gEcatSyncDiag.outputEventCount++;
+
+    if (bDcRunning && bDcSyncActive)
+    {
+        u16SmSync0Counter = 0;
+    }
+    if (sSyncManOutPar.u16SmEventMissedCounter > 0)
+    {
+        sSyncManOutPar.u16SmEventMissedCounter--;
+    }
+    sSyncManInPar.u16SmEventMissedCounter =
+        sSyncManOutPar.u16SmEventMissedCounter;
+    bEcatFirstOutputsReceived = TRUE;
+
+    if (bEcatOutputUpdateRunning)
+    {
+        PDO_OutputMapping();
+    }
+    else
+    {
+        HW_EscReadWordIsr(u16dummy, nEscAddrOutputData);
+        HW_EscReadWordIsr(u16dummy,
+            (nEscAddrOutputData + nPdOutputSize - 2));
+    }
+}
+
+/* Called once for the output event serviced by this ISR; preserve input-only SM operation. */
+static void PDI_ProcessSmApplication(void)
+{
+    if (sSyncManOutPar.u16SyncType == SYNCTYPE_SM_SYNCHRON)
+    {
+        ECAT_Application();
+    }
+    if ((bEcatInputUpdateRunning == TRUE) && (nPdInputSize > 0)
+        && ((sSyncManInPar.u16SyncType == SYNCTYPE_SM_SYNCHRON)
+            || (sSyncManInPar.u16SyncType == SYNCTYPE_SM2_SYNCHRON)))
+    {
+        PDO_InputMapping();
+    }
+}
+
+/*
+ * Called immediately before an OP -> SAFEOP synchronization failure.
+ * These are software-state snapshots, not additional ESC transactions.
+ * Only this first record is retained until MCU reset; firstAlStatusCode is
+ * the commit field, so a debugger should read the record only when nonzero.
+ */
+void ECAT_RecordSyncError(UINT16 alStatusCode)
+{
+    if (gEcatSyncDiag.firstAlStatusCode == 0)
+    {
+        gEcatSyncDiag.firstEntryEvent = gEcatSyncDiag.lastEntryEvent;
+        gEcatSyncDiag.firstPendingEvent = gEcatSyncDiag.lastPendingEvent;
+        gEcatSyncDiag.firstSmSync0Counter = u16SmSync0Counter;
+        gEcatSyncDiag.firstSmSync0Limit = u16SmSync0Value;
+        gEcatSyncDiag.firstSmEventMissedCounter =
+            sSyncManOutPar.u16SmEventMissedCounter;
+        gEcatSyncDiag.firstSyncErrorLimit =
+            sErrorSettings.u16SyncErrorCounterLimit;
+        gEcatSyncDiag.firstCycleExceededCounter =
+            sSyncManOutPar.u16CycleExceededCounter;
+        gEcatSyncDiag.firstSync0WdCounter = Sync0WdCounter;
+        gEcatSyncDiag.firstSync0WdLimit = Sync0WdValue;
+        gEcatSyncDiag.firstDcRunning = bDcRunning;
+        gEcatSyncDiag.firstSequenceValid = bSmSyncSequenceValid;
+        gEcatSyncDiag.firstAlStatusCode = alStatusCode;
+    }
+}
+
 void PDI_Isr(void)
 {
-    /*ECATCHANGE_START(V5.13) ECAT1*/
     BOOL SyncAcknowledgePending = FALSE;
+    BOOL Sync1Handled = FALSE;
+    BOOL OutputHandled = FALSE;
+    UINT16 ALEvent = HW_GetALEventRegister_Isr();
+    UINT16 SyncEvents;
 
-    /* get the AL event register */
-    UINT16  ALEvent = HW_GetALEventRegister_Isr();
     ALEvent = SWAPWORD(ALEvent);
+    SyncEvents = ALEvent & (SYNC0_EVENT | SYNC1_EVENT);
+    gEcatSyncDiag.pdiIsrCount++;
+    gEcatSyncDiag.lastEntryEvent = ALEvent;
+    gEcatSyncDiag.lastPendingEvent = ALEvent;
 
-
-    /* Check if Sync1 Isr has to be called */
-
-    if (ALEvent & SYNC1_EVENT)
+    if (SyncEvents & SYNC1_EVENT)
     {
         Sync1_Isr();
-
+        Sync1Handled = TRUE;
         SyncAcknowledgePending = TRUE;
     }
-    /*ECATCHANGE_END(V5.13) ECAT1*/
-    
 
-    if(bEscIntEnabled)
+    if (bEscIntEnabled)
     {
-        if ( ALEvent & PROCESS_OUTPUT_EVENT )
+        if (ALEvent & PROCESS_OUTPUT_EVENT)
         {
-            if(bDcRunning && bDcSyncActive)
+            PDI_ProcessOutputEvent();
+            OutputHandled = TRUE;
+        }
+
+        /* No stale SM application call on a SYNC-only/mailbox interrupt. */
+        if (OutputHandled || (nPdOutputSize == 0))
+        {
+            PDI_ProcessSmApplication();
+        }
+
+        ALEvent = HW_GetALEventRegister_Isr();
+        ALEvent = SWAPWORD(ALEvent);
+        SyncEvents |= ALEvent & (SYNC0_EVENT | SYNC1_EVENT);
+        gEcatSyncDiag.lastPendingEvent = ALEvent;
+
+        if ((ALEvent & PROCESS_OUTPUT_EVENT) && !OutputHandled)
+        {
+            /*
+             * First PDO of this ISR, not a cycle overrun. Service it normally
+             * so that watchdog and SM/SYNC0 bookkeeping are updated too.
+             * Only one late first PDO is allowed; no unbounded drain loop.
+             */
+            gEcatSyncDiag.lateOutputEventCount++;
+            PDI_ProcessOutputEvent();
+            OutputHandled = TRUE;
+            PDI_ProcessSmApplication();
+
+            ALEvent = HW_GetALEventRegister_Isr();
+            ALEvent = SWAPWORD(ALEvent);
+            SyncEvents |= ALEvent & (SYNC0_EVENT | SYNC1_EVENT);
+            gEcatSyncDiag.lastPendingEvent = ALEvent;
+        }
+
+        if (OutputHandled && (ALEvent & PROCESS_OUTPUT_EVENT))
+        {
+            /*
+             * Another output event is pending after servicing the first.
+             * Retain the SSC overrun diagnostic and acknowledgement policy.
+             * Saturate the 16-bit counter so wraparound cannot hide an error.
+             */
+            gEcatSyncDiag.outputRetriggerCount++;
+            if (sSyncManOutPar.u16CycleExceededCounter < 0xFFFFU)
             {
-                /* Reset SM/Sync0 counter. Will be incremented on every Sync0 event*/
-                u16SmSync0Counter = 0;
+                sSyncManOutPar.u16CycleExceededCounter++;
             }
-            if(sSyncManOutPar.u16SmEventMissedCounter > 0)
-            {
-                sSyncManOutPar.u16SmEventMissedCounter--;
-            }
+            sSyncManInPar.u16CycleExceededCounter =
+                sSyncManOutPar.u16CycleExceededCounter;
 
-            sSyncManInPar.u16SmEventMissedCounter = sSyncManOutPar.u16SmEventMissedCounter;
-
-
-
-        /* Outputs were updated, set flag for watchdog monitoring */
-        bEcatFirstOutputsReceived = TRUE;
-
-
-        /*
-            handle output process data event
-        */
-        if ( bEcatOutputUpdateRunning )
-        {
-            /* slave is in OP, update the outputs */
-            PDO_OutputMapping();
+            HW_EscReadWordIsr(u16dummy, nEscAddrOutputData);
+            HW_EscReadWordIsr(u16dummy,
+                (nEscAddrOutputData + nPdOutputSize - 2));
         }
-        else
-        {
-            /* Just acknowledge the process data event in the INIT,PreOP and SafeOP state */
-            HW_EscReadWordIsr(u16dummy,nEscAddrOutputData);
-            HW_EscReadWordIsr(u16dummy,(nEscAddrOutputData+nPdOutputSize-2));
-        }
-        }
-
-        /*
-            Call ECAT_Application() in SM Sync mode
-        */
-        if (sSyncManOutPar.u16SyncType == SYNCTYPE_SM_SYNCHRON)
-        {
-            /* The Application is synchronized to process data Sync Manager event*/
-            ECAT_Application();
-        }
-
-/*ECATCHANGE_START(V5.13) ECAT 5*/
-    if ( (bEcatInputUpdateRunning == TRUE) && (nPdInputSize > 0)
-/*ECATCHANGE_END(V5.13) ECAT 5*/
-       && ((sSyncManInPar.u16SyncType == SYNCTYPE_SM_SYNCHRON) || (sSyncManInPar.u16SyncType == SYNCTYPE_SM2_SYNCHRON))
-        )
-    {
-        /* EtherCAT slave is at least in SAFE-OPERATIONAL, update inputs */
-        PDO_InputMapping();
     }
 
     /*
-      Check if cycle exceed
-    */
-    /*if next SM event was triggered during runtime increment cycle exceed counter*/
-    ALEvent = HW_GetALEventRegister_Isr();
-    ALEvent = SWAPWORD(ALEvent);
-
-    if ( ALEvent & PROCESS_OUTPUT_EVENT )
+     * Preserve sync bits from every snapshot. A later AL read must neither
+     * erase a sync event seen at entry nor cause it to be serviced twice.
+     */
+    if ((SyncEvents & SYNC1_EVENT) && !Sync1Handled)
     {
-        sSyncManOutPar.u16CycleExceededCounter++;
-        sSyncManInPar.u16CycleExceededCounter = sSyncManOutPar.u16CycleExceededCounter;
-
-      /* Acknowledge the process data event*/
-            HW_EscReadWordIsr(u16dummy,nEscAddrOutputData);
-            HW_EscReadWordIsr(u16dummy,(nEscAddrOutputData+nPdOutputSize-2));
+        Sync1_Isr();
+        SyncAcknowledgePending = TRUE;
     }
-    } //if(bEscIntEnabled)
-
-      /*ECATCHANGE_START(V5.13) ECAT1*/
-    if (ALEvent & SYNC0_EVENT)
+    if (SyncEvents & SYNC0_EVENT)
     {
         Sync0_Isr();
-
         SyncAcknowledgePending = TRUE;
     }
 
-    /* Read Sync0/1 Status Register to acknowledge the event bit in the AL Event register */
     if (SyncAcknowledgePending)
     {
         volatile UINT32 SyncState = 0;
         HW_EscReadDWord(SyncState, ESC_DC_SYNC_STATUS);
-
     }
-    /*ECATCHANGE_END(V5.13) ECAT1*/
 
     COE_UpdateSyncErrorStatus();
-
 }
 
 void Sync0_Isr(void)

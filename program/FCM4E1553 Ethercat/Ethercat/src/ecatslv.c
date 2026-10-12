@@ -2298,11 +2298,13 @@ void CheckIfEcatError(void)
            /*Slave is in OP state*/
            if(!bDcRunning)
            {
+               ECAT_RecordSyncError(ALSTATUSCODE_FATALSYNCERROR);
                AL_ControlInd(STATE_SAFEOP, ALSTATUSCODE_FATALSYNCERROR);
                return;
            }
            else if(!bSmSyncSequenceValid)
            {
+               ECAT_RecordSyncError(ALSTATUSCODE_SYNCERROR);
                AL_ControlInd(STATE_SAFEOP, ALSTATUSCODE_SYNCERROR);
                return;
            }

@@ -1,4 +1,5 @@
 #include "PwmInit.h"
+#include "EthercatMotorControl.h"
 
 /*
  * CoE Online isolation test:
@@ -148,6 +149,7 @@ void TIM8_UP_IRQHandler(void)
         }
 
         TIM_ClrIntPendingBit(TIM8, TIM_INT_UPDATE);
+        EthercatMotorControl_BeginPhaseCycle(Iangle);
         ErrorHandle();
         if (ErrNumFlag != 0U)
         {
@@ -163,6 +165,7 @@ void TIM8_UP_IRQHandler(void)
         MainFunt();
 #endif
         }
+        EthercatMotorControl_EndPhaseCycle(Iangle);
         PwmFlag = 1U;
 
         if (gMotorCycleCounterAvailable != 0U)

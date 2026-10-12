@@ -21,6 +21,26 @@
 extern volatile s32 gEcatBaseRpmCommand;
 extern volatile u8 gEcatMotorEnabled;
 
+typedef struct
+{
+    s32 countedPosition;
+    s32 targetPosition;
+    s32 resolution;
+    s32 lastPhaseStep;
+    s32 requestedPhaseStep;
+    uint32_t countedCycles;
+    uint32_t skippedCycles;
+    uint32_t mismatchCount;
+    uint32_t positiveStepCycles;
+    uint32_t negativeStepCycles;
+    uint32_t blockedAwayCount;
+    uint32_t maxStepDelta;
+    uint8_t atTarget;
+    uint8_t positionLimit;
+    uint8_t resolutionChanged;
+} TEcatPulseDiagnostics;
+extern volatile TEcatPulseDiagnostics gEcatPulseDiag;
+
 void EthercatMotorControl_Init(void);
 void EthercatMotorControl_Update(void);
 /* Latch one coherent setpoint after SM RxPDO mapping or on DC Sync0. */
@@ -29,6 +49,9 @@ void EthercatMotorControl_OnSyncCycle(void);
 /* Fixed-rate ramp and feedback helpers called from the 16 kHz motor ISR. */
 s32 EthercatMotorControl_ApplyRamp(s32 target_base_rpm);
 void EthercatMotorControl_EmergencyStop(void);
-void EthercatMotorControl_FastUpdate(s32 applied_base_rpm);
+/* Called around MainFunt: prepare a bounded step, then count actual PhaseGet. */
+s32 EthercatMotorControl_NextPhaseStep(void);
+void EthercatMotorControl_BeginPhaseCycle(s32 angle);
+void EthercatMotorControl_EndPhaseCycle(s32 angle);
 
 #endif
