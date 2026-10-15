@@ -41,12 +41,13 @@ static void exti_configure(uint16_t pin,
 
 void exti_init_irq(void)
 {
-    /* Highest communication priority, below the 16 kHz motor loop. */
+    /* Reserve preemption level 0 for ESC IRQ; normal ISRs cannot preempt it.
+     * PRIMASK critical sections still defer entry, and NMI/HardFault remain. */
     exti_configure(GPIO_PIN_0,
                    GPIO_PIN_SOURCE0,
                    EXTI_LINE0,
                    EXTI0_IRQn,
-                   1U,
+                   0U,
                    0U);
 }
 
@@ -57,15 +58,26 @@ void exti_init_sync0(void)
                    EXTI_LINE1,
                    EXTI1_IRQn,
                    1U,
-                   1U);
+                   0U);
 }
 
 void exti_init_sync1(void)
 {
+#if ECAT_SYNC1_IRQ_ENABLED
     exti_configure(GPIO_PIN_2,
                    GPIO_PIN_SOURCE2,
                    EXTI_LINE2,
                    EXTI2_IRQn,
                    1U,
                    2U);
+#else
+    /* Do not claim/configure the unconnected PB2 pin as a floating input. */
+    NVIC_DisableIRQ(EXTI2_IRQn);
+    EXTI->IMASK &= ~EXTI_LINE2;
+    EXTI->EMASK &= ~EXTI_LINE2;
+    EXTI->RT_CFG &= ~EXTI_LINE2;
+    EXTI->FT_CFG &= ~EXTI_LINE2;
+    EXTI_ClrITPendBit(EXTI_LINE2);
+    NVIC_ClearPendingIRQ(EXTI2_IRQn);
+#endif
 }

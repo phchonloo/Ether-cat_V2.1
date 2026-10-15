@@ -92,9 +92,9 @@ static void motor_control_irq_priority_config(void)
 {
     NVIC_InitType nvic_init;
 
-    /* The 16 kHz motor loop must pre-empt protocol work. */
+    /* ESC IRQ owns level 0, SYNC0 owns level 1; motor control runs below both. */
     nvic_init.NVIC_IRQChannel = TIM8_UP_IRQn;
-    nvic_init.NVIC_IRQChannelPreemptionPriority = 0U;
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 2U;
     nvic_init.NVIC_IRQChannelSubPriority = 0U;
     nvic_init.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic_init);

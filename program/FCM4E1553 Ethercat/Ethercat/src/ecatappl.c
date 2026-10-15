@@ -153,6 +153,7 @@ V4.00 APPL 6: The main function was split in MainInit and MainLoop
 //#include "el9800appl.h"
 #include "cia402appl.h"
 #include "qspi.h"
+#include "EthercatMotorControl.h"
 
 
 /*--------------------------------------------------------------------------------------
@@ -355,13 +356,38 @@ void PDO_OutputMapping(void)
     APPL_OutputMapping((UINT16*) aPdOutputData);
     {
         UINT32 now = DWT->CYCCNT;
+        gEcatCommDiag.diagVersion = ECAT_COMM_DIAG_VERSION;
+        gEcatCommDiag.lastPdoControlWord = LocalAxes[0].Objects.objControlWord;
+        gEcatCommDiag.lastPdoGapValid = 0U;
+        gEcatCommDiag.lastPdoGapCycles = 0U;
         if ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) != 0U)
         {
             UINT32 gap = now - gEcatCommDiag.lastPdoCycle;
+            if (gEcatCommDiag.lastPdoCycleValid != 0U)
+            {
+                gEcatCommDiag.lastPdoGapCycles = gap;
+                gEcatCommDiag.lastPdoGapValid = 1U;
+            }
             if ((gEcatCommDiag.pdoReadOkCount != 0U) &&
                 (gap > gEcatCommDiag.maxPdoGapCycles))
                 gEcatCommDiag.maxPdoGapCycles = gap;
+            /* Exclude startup and intervals with the motor disabled. Retain
+             * the historical all-traffic maximum above for compatibility.
+             * DWT subtraction is modular: long pauses/debug halts are not a
+             * reliable elapsed-time measurement and are not fault triggers. */
+            if ((gEcatCommDiag.lastPdoCycleValid != 0U) &&
+                (gEcatCommDiag.lastPdoEnabled != 0U) &&
+                (gEcatMotorEnabled != 0U) &&
+                (gap > gEcatCommDiag.maxEnabledPdoGapCycles))
+                gEcatCommDiag.maxEnabledPdoGapCycles = gap;
             gEcatCommDiag.lastPdoCycle = now;
+            gEcatCommDiag.lastPdoEnabled = gEcatMotorEnabled;
+            gEcatCommDiag.lastPdoCycleValid = 1U;
+        }
+        else
+        {
+            gEcatCommDiag.lastPdoEnabled = 0U;
+            gEcatCommDiag.lastPdoCycleValid = 0U;
         }
         if (gEcatCommDiag.pdoReadOkCount != UINT32_MAX)
             gEcatCommDiag.pdoReadOkCount++;
@@ -683,10 +709,12 @@ void PDI_Isr(void)
         {
             /*
              * Another output event is pending after servicing the first.
-             * Retain the SSC overrun diagnostic and acknowledgement policy.
+             * Retain the SSC overrun diagnostic; consume the latest full PDO
+             * in OP instead of acknowledging it without applying the payload.
              * Saturate the 16-bit counter so wraparound cannot hide an error.
              */
-            gEcatSyncDiag.outputRetriggerCount++;
+            if (gEcatSyncDiag.outputRetriggerCount != UINT32_MAX)
+                gEcatSyncDiag.outputRetriggerCount++;
             if (sSyncManOutPar.u16CycleExceededCounter < 0xFFFFU)
             {
                 sSyncManOutPar.u16CycleExceededCounter++;
@@ -694,9 +722,26 @@ void PDI_Isr(void)
             sSyncManInPar.u16CycleExceededCounter =
                 sSyncManOutPar.u16CycleExceededCounter;
 
-            HW_EscReadWordIsr(u16dummy, nEscAddrOutputData);
-            HW_EscReadWordIsr(u16dummy,
-                (nEscAddrOutputData + nPdOutputSize - 2));
+            if (bEcatOutputUpdateRunning)
+            {
+                /* The second event may carry a stop controlword. Reading just
+                 * the SM endpoints acknowledges and discards that command.
+                 * Read/publish the complete latest PDO instead. At most TWO
+                 * PDO copies per IRQ; do not turn this into a drain loop.
+                 * Keep the overrun warning above and do not decrement the
+                 * missed-event counter a second time for this burst. */
+                if (gEcatSyncDiag.outputRetriggerReadCount != UINT32_MAX)
+                    gEcatSyncDiag.outputRetriggerReadCount++;
+                PDO_OutputMapping();
+                PDI_ProcessSmApplication();
+            }
+            else
+            {
+                /* SAFEOP: acknowledge only, never apply output commands. */
+                HW_EscReadWordIsr(u16dummy, nEscAddrOutputData);
+                HW_EscReadWordIsr(u16dummy,
+                    (nEscAddrOutputData + nPdOutputSize - 2));
+            }
         }
     }
 

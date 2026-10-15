@@ -2,6 +2,8 @@
 
 日期：2026-10-12。适用工程：`program/FCM4E1553 Ethercat/MDK-ARM/Project.uvprojx`，目标 `N32G455`。
 
+2026-10-13 补充：旧 OP 退出诊断存在预先赋值导致的漏记；旧版 `firstOpExitValid=0` 不能排除状态掉落。修正与主站帧级诊断绑定见 [PP/CSP 停转专项说明](PP_CSP_STOP_DIAGNOSIS_20261013.md)。本文保留上一轮修正和验证历史。
+
 ## 1. 这次解决什么，没有证明什么
 
 你提供的 PLC 首错记录是 `nStopReason=1`、`diagWcState=TRUE`，随后 `bStopLatched=TRUE`、控制字变为 0。直接停机原因是 PLC 检测到工作计数器异常并锁存停机，不是运行圈数达到上限。

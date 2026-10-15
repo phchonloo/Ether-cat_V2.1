@@ -124,7 +124,8 @@ void timer_pwm_adc_init(void)
 
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     nvic_init.NVIC_IRQChannel = TIM8_UP_IRQn;
-    nvic_init.NVIC_IRQChannelPreemptionPriority = 0U;
+    /* Match main.c: ESC IRQ (0) and SYNC0 (1) may preempt motor control. */
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 2U;
     nvic_init.NVIC_IRQChannelSubPriority = 0U;
     nvic_init.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&nvic_init);

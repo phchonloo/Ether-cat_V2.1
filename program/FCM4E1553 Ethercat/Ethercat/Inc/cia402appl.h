@@ -625,6 +625,10 @@ typedef struct OBJ_STRUCT_PACKED_START
     TOBJ60C2 objInterpolationTimePeriod; /**< \brief Interpolation Time Period (0x60C2)*/
     INT32 objTargetVelocity; /**< \brief Target Velocity (0x60FF)*/
     UINT32 objSupportedDriveModes; /**< \brief Supported Drive Modes (0x6502)*/
+    UINT16 objMotionUnits; /* 0x2000: 0=legacy rpm, 1=count/s; PREOP only */
+    INT16 objHaltOptionCode; /* 0x605D: 1=profile ramp, 2=quick-stop ramp */
+    UINT32 objMaxProfileVelocity; /* 0x607F */
+    INT32 objPositionOffset; /* 0x60B0: CSP target offset */
 }OBJ_STRUCT_PACKED_END
 CiA402Objects;
 
@@ -658,6 +662,20 @@ TCiA402Axis, *pTCiA402Axis;
 #endif //_CIA402_H_
 
 #ifdef _CiA402_
+UINT8 WriteMotionParameter(UINT16 index, UINT8 subindex, UINT32 dataSize,
+                           UINT16 MBXMEM *pData, UINT8 bCompleteAccess);
+OBJCONST TSDOINFOENTRYDESC OBJMEM sEntryDesc0x2000 =
+    {DEFTYPE_UNSIGNED16, 16, ACCESS_READ | ACCESS_WRITE_PREOP};
+OBJCONST UCHAR OBJMEM aName0x2000[] = "Motion units (0=rpm, 1=count/s)";
+OBJCONST TSDOINFOENTRYDESC OBJMEM sEntryDesc0x605D =
+    {DEFTYPE_INTEGER16, 16, ACCESS_READWRITE};
+OBJCONST UCHAR OBJMEM aName0x605D[] = "Halt option code";
+OBJCONST TSDOINFOENTRYDESC OBJMEM sEntryDesc0x607F =
+    {DEFTYPE_UNSIGNED32, 32, ACCESS_READWRITE};
+OBJCONST UCHAR OBJMEM aName0x607F[] = "Max profile velocity";
+OBJCONST TSDOINFOENTRYDESC OBJMEM sEntryDesc0x60B0 =
+    {DEFTYPE_INTEGER32, 32, ACCESS_READWRITE | OBJACCESS_RXPDOMAPPING};
+OBJCONST UCHAR OBJMEM aName0x60B0[] = "Position offset (CSP)";
     #define PROTO
 #else
     #define PROTO extern
@@ -946,7 +964,7 @@ OBJCONST UCHAR OBJMEM aName0x6084[] = "Profile Deceleration";
 
 
 /** \brief Object 0x6085 (Quickstop Declaration) entry description*/
-OBJCONST TSDOINFOENTRYDESC    OBJMEM sEntryDesc0x6085 = {DEFTYPE_INTEGER32, 0x20, (ACCESS_READWRITE | OBJACCESS_RXPDOMAPPING)};
+OBJCONST TSDOINFOENTRYDESC    OBJMEM sEntryDesc0x6085 = {DEFTYPE_UNSIGNED32, 0x20, ACCESS_READWRITE};
 
 /** \brief Object 0x6085 (Quickstop Declaration) object name*/
 OBJCONST UCHAR OBJMEM aName0x6085[] = "Quick stop deceleration";
@@ -1197,10 +1215,14 @@ CYCLIC_SYNC_VELOCITY_MODE,/*(INT16) Mode Of Operation Display 0x6061*/
 100,/*(UINT32) Profile Velocity 0x6081, rpm*/
 300,/*(UINT32) Profile Acceleration 0x6083, rpm/s*/
 300,/*(UINT32) Profile Deceleration 0x6084, rpm/s*/
-0x0,/*(UINT32) QuickStopDeclaration 0x6085*/
+300,/*(UINT32) Quick stop deceleration 0x6085, rpm/s*/
 {2,1,(INT8)-3},/*TOBJ60C2 Interpolation Time Period*/
 0x0,/*(INT32) Target Velocity    0x60FF*/
-0x0/*(UINT32) Supported Drive Modes 0x6502*/
+0x185,/*(UINT32) Supported Drive Modes 0x6502: PP/PV/CSP/CSV */
+0, /* motion units: backwards-compatible rpm */
+1, /* Halt uses profile deceleration */
+1000, /* maximum profile velocity, rpm */
+0 /* CSP position offset */
 }
 #endif
 ;
@@ -1255,13 +1277,14 @@ PROTO TOBJECT    OBJMEM DefCiA402AxisObjDic[]
    /* Object 0x6041 */
    {NULL,NULL, 0x6041, {DEFTYPE_UNSIGNED16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6041, aName0x6041, NULL, NULL, NULL, 0x0000 },
    /* Object 0x605A */
-   {NULL,NULL, 0x605A, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x605A, aName0x605A, NULL, NULL, NULL, 0x0000 },
+    {NULL,NULL, 0x605A, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x605A, aName0x605A, NULL, NULL, WriteMotionParameter, 0x0000 },
    /* Object 0x605B */
-   {NULL,NULL, 0x605B, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x605B, aName0x605B, NULL, NULL, NULL, 0x0000 },
+    {NULL,NULL, 0x605B, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x605B, aName0x605B, NULL, NULL, WriteMotionParameter, 0x0000 },
    /* Object 0x605C */
-   {NULL,NULL, 0x605C, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x605C, aName0x605C, NULL, NULL, NULL, 0x0000 },
+    {NULL,NULL, 0x605C, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x605C, aName0x605C, NULL, NULL, WriteMotionParameter, 0x0000 },
+    {NULL,NULL, 0x605D, {DEFTYPE_INTEGER16, OBJCODE_VAR << 8}, &sEntryDesc0x605D, aName0x605D, NULL, NULL, WriteMotionParameter, 0},
    /* Object 0x605E */
-   {NULL,NULL, 0x605E, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x605E, aName0x605E, NULL, NULL, NULL, 0x0000 },
+    {NULL,NULL, 0x605E, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x605E, aName0x605E, NULL, NULL, WriteMotionParameter, 0x0000 },
    /* Object 0x6060 */
     {NULL,NULL, 0x6060, {DEFTYPE_INTEGER8 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6060, aName0x6060, NULL, NULL, NULL, 0x0000 },
    /* Object 0x6061 */
@@ -1277,13 +1300,16 @@ PROTO TOBJECT    OBJMEM DefCiA402AxisObjDic[]
    /* Object 0x607A */
    {NULL,NULL, 0x607A, {DEFTYPE_INTEGER32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x607A, aName0x607A, NULL, NULL, NULL, 0x0000 },
    /* Object 0x6081 */
-   {NULL,NULL, 0x6081, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6081, aName0x6081, NULL, NULL, NULL, 0x0000 },
+    {NULL,NULL, 0x6081, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6081, aName0x6081, NULL, NULL, WriteMotionParameter, 0x0000 },
    /* Object 0x6083 */
-   {NULL,NULL, 0x6083, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6083, aName0x6083, NULL, NULL, NULL, 0x0000 },
+    {NULL,NULL, 0x6083, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6083, aName0x6083, NULL, NULL, WriteMotionParameter, 0x0000 },
    /* Object 0x6084 */
-   {NULL,NULL, 0x6084, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6084, aName0x6084, NULL, NULL, NULL, 0x0000 },
+    {NULL,NULL, 0x6084, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6084, aName0x6084, NULL, NULL, WriteMotionParameter, 0x0000 },
    /* Object 0x6085 */
-   {NULL,NULL, 0x6085, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6085, aName0x6085, NULL, NULL, NULL, 0x0000 },
+    {NULL,NULL, 0x6085, {DEFTYPE_UNSIGNED32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6085, aName0x6085, NULL, NULL, WriteMotionParameter, 0x0000 },
+    {NULL,NULL, 0x2000, {DEFTYPE_UNSIGNED16, OBJCODE_VAR << 8}, &sEntryDesc0x2000, aName0x2000, NULL, NULL, WriteMotionParameter, 0},
+    {NULL,NULL, 0x607F, {DEFTYPE_UNSIGNED32, OBJCODE_VAR << 8}, &sEntryDesc0x607F, aName0x607F, NULL, NULL, WriteMotionParameter, 0},
+    {NULL,NULL, 0x60B0, {DEFTYPE_INTEGER32, OBJCODE_VAR << 8}, &sEntryDesc0x60B0, aName0x60B0, NULL, NULL, NULL, 0},
    /* Object 0x60C2 */
    {NULL,NULL, 0x60C2, {DEFTYPE_RECORD , 2 | (OBJCODE_REC << 8)}, asEntryDesc0x60C2, aName0x60C2, NULL, NULL, NULL, 0x0000 },
    /* Object 0x60FF */

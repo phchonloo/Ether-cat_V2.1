@@ -18,7 +18,8 @@
 
 u8 PwmFlag = 0U;
 
-/* Live timing diagnostics; read these while the MCU is running. */
+/* Live elapsed-time diagnostics; read these while the MCU is running.
+ * Nested ESC IRQ/SYNC0 time is included, not just motor CPU usage. */
 volatile uint32_t gMotorIsrLoadPercent = 0U;
 volatile uint32_t gMotorIsrMaxCycles = 0U;
 volatile uint32_t gMotorIsrOverrunCount = 0U;
@@ -132,6 +133,16 @@ void pwm_config(void)
  */
 void RAMRUN UpPwm(u16 pwm1, u16 pwm2, u16 pwm3, u16 pwm4)
 {
+    /* Gate the only PWM write boundary, not just the position command. The
+     * vendor algorithm may still execute ADC/current housekeeping disabled.
+     * This is software gating, not STO; disabling removes holding torque. */
+    if (EthercatMotorControl_PowerAllowed() == 0U)
+    {
+        pwm1 = 0U;
+        pwm2 = 0U;
+        pwm3 = 0U;
+        pwm4 = 0U;
+    }
     TIM_SetCmp1(TIM8, pwm1);
     TIM_SetCmp2(TIM8, pwm2);
     TIM_SetCmp3(TIM8, pwm3);
@@ -162,7 +173,11 @@ void TIM8_UP_IRQHandler(void)
         }
         else if (ErrNumFlag != 0U)
         {
-            /* The detector has zeroed PWM; do not run the control algorithm. */
+            /* The detector has zeroed PWM; also retire the old ramp so the
+             * CiA402 fault reaction can acknowledge emitted-motion stop. */
+            gEcatMotorEnabled = 0U;
+            gEcatBaseRpmCommand = 0;
+            EthercatMotorControl_EmergencyStop();
         }
         else
         {
@@ -194,7 +209,7 @@ void TIM8_UP_IRQHandler(void)
             sMotorIsrWindowSamples++;
             if (sMotorIsrWindowSamples >= 100U)
             {
-                /* 100 samples: sum / cycles-per-period equals CPU percent. */
+                /* 100 samples: elapsed occupancy, including ESC IRQ/SYNC0. */
                 gMotorIsrLoadPercent =
                     sMotorIsrWindowCycles / gMotorIsrPeriodCycles;
                 sMotorIsrWindowCycles = 0U;

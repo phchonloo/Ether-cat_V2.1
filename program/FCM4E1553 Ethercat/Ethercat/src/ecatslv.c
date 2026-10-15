@@ -1413,20 +1413,28 @@ void BackToInitTransition(void)
 void SetALStatus(UINT8 alStatus, UINT16 alStatusCode)
 {
     UINT16 Value = alStatusCode;
+    /* SSC callers may already have assigned nAlStatus. Compare with the last
+     * published request instead; otherwise OP -> SAFEOP can go unrecorded.
+     * This is software evidence, not confirmation of an ESC register write. */
+    UINT8 previousAlStatus = (gEcatCommDiag.lastAlStateValid != 0U) ?
+                            gEcatCommDiag.lastAlState : nAlStatus;
 
-    if (nAlStatus != alStatus)
+    gEcatCommDiag.diagVersion = ECAT_COMM_DIAG_VERSION;
+    if (previousAlStatus != alStatus)
     {
         if (gEcatCommDiag.alTransitionCount != UINT32_MAX)
             gEcatCommDiag.alTransitionCount++;
-        if (((nAlStatus & STATE_MASK) == STATE_OP) &&
+        if (((previousAlStatus & STATE_MASK) == STATE_OP) &&
             (((alStatus & STATE_MASK) != STATE_OP) ||
              ((alStatus & STATE_CHANGE) != 0U)) &&
             (gEcatCommDiag.firstOpExitValid == 0U))
         {
-            gEcatCommDiag.firstOpExitFrom = nAlStatus;
+            gEcatCommDiag.firstOpExitFrom = previousAlStatus;
             gEcatCommDiag.firstOpExitTo = alStatus;
             gEcatCommDiag.firstOpExitCode = (alStatusCode == 0xFFFFU) ?
                 gEcatCommDiag.lastAlCode : alStatusCode;
+            gEcatCommDiag.firstOpExitCycle = DWT->CYCCNT;
+            gEcatCommDiag.firstOpExitPdoCount = gEcatCommDiag.pdoReadOkCount;
             __DMB();
             gEcatCommDiag.firstOpExitValid = 1U;
         }
@@ -1434,6 +1442,7 @@ void SetALStatus(UINT8 alStatus, UINT16 alStatusCode)
     gEcatCommDiag.lastAlState = alStatus;
     if (alStatusCode != 0xFFFFU)
         gEcatCommDiag.lastAlCode = alStatusCode;
+    gEcatCommDiag.lastAlStateValid = 1U;
 
     /*update global status variable if required*/
     if(nAlStatus != alStatus)

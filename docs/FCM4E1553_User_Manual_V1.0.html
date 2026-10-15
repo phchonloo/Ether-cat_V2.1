@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCM4E1553 EtherCAT步进驱动器 - 产品说明书</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "Microsoft YaHei", "SimSun", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+            padding: 20mm;
+            max-width: 210mm;
+            margin: 0 auto;
+        }
+        
+        /* 标题样式 */
+        h1 {
+            color: #1a5490;
+            font-size: 28pt;
+            margin: 20pt 0;
+            padding-bottom: 10pt;
+            border-bottom: 3px solid #1a5490;
+            page-break-after: avoid;
+        }
+        
+        h2 {
+            color: #1a5490;
+            font-size: 20pt;
+            margin: 18pt 0 10pt 0;
+            padding-top: 10pt;
+            border-bottom: 2px solid #4a90e2;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            color: #2d5da1;
+            font-size: 16pt;
+            margin: 14pt 0 8pt 0;
+            page-break-after: avoid;
+        }
+        
+        h4 {
+            color: #4a90e2;
+            font-size: 13pt;
+            margin: 12pt 0 6pt 0;
+            page-break-after: avoid;
+        }
+        
+        /* 段落和列表 */
+        p {
+            margin: 8pt 0;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin: 8pt 0 8pt 20pt;
+        }
+        
+        li {
+            margin: 4pt 0;
+        }
+        
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12pt 0;
+            font-size: 10pt;
+            page-break-inside: avoid;
+        }
+        
+        th {
+            background: #1a5490;
+            color: white;
+            padding: 8pt;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #ddd;
+        }
+        
+        td {
+            padding: 6pt 8pt;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        /* 代码块样式 */
+        code {
+            background: #f4f4f4;
+            padding: 2pt 4pt;
+            border-radius: 3px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 9pt;
+            color: #c7254e;
+        }
+        
+        pre {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-left: 4px solid #1a5490;
+            padding: 10pt;
+            margin: 10pt 0;
+            overflow-x: auto;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 9pt;
+            line-height: 1.4;
+            page-break-inside: avoid;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+        
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid #ffc107;
+            background: #fff9e6;
+            padding: 10pt 15pt;
+            margin: 10pt 0;
+            font-style: italic;
+            page-break-inside: avoid;
+        }
+        
+        /* 警告框 */
+        .warning {
+            border-left: 4px solid #ff5722;
+            background: #ffebee;
+            padding: 10pt 15pt;
+            margin: 10pt 0;
+            page-break-inside: avoid;
+        }
+        
+        .warning::before {
+            content: "⚠️ ";
+            font-weight: bold;
+        }
+        
+        /* 提示框 */
+        .note {
+            border-left: 4px solid #4caf50;
+            background: #e8f5e9;
+            padding: 10pt 15pt;
+            margin: 10pt 0;
+            page-break-inside: avoid;
+        }
+        
+        .note::before {
+            content: "✓ ";
+            font-weight: bold;
+        }
+        
+        /* 链接 */
+        a {
+            color: #1a5490;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* 水平线 */
+        hr {
+            border: none;
+            border-top: 2px solid #ddd;
+            margin: 20pt 0;
+        }
+        
+        /* 目录样式 */
+        .toc {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15pt;
+            margin: 20pt 0;
+            page-break-inside: avoid;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            border-bottom: none;
+        }
+        
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .toc li {
+            margin: 6pt 0;
+        }
+        
+        /* 封面样式 */
+        .cover {
+            text-align: center;
+            padding: 50mm 0;
+            page-break-after: always;
+        }
+        
+        .cover h1 {
+            font-size: 36pt;
+            border: none;
+            margin-bottom: 10mm;
+        }
+        
+        .cover .subtitle {
+            font-size: 24pt;
+            color: #666;
+            margin-bottom: 5mm;
+        }
+        
+        .cover .version {
+            font-size: 14pt;
+            color: #999;
+            margin-top: 20mm;
+        }
+        
+        /* 打印样式 */
+        @media print {
+            body {
+                padding: 15mm;
+            }
+            
+            h1, h2, h3, h4 {
+                page-break-after: avoid;
+            }
+            
+            table, pre, blockquote, .warning, .note {
+                page-break-inside: avoid;
+            }
+            
+            a {
+                color: #000;
+                text-decoration: none;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+        
+        /* 页眉页脚（仅打印时） */
+        @page {
+            margin: 20mm;
+            
+            @top-right {
+                content: "FCM4E1553 产品说明书";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            @bottom-right {
+                content: counter(page);
+                font-size: 9pt;
+            }
+        }
+    </style>
+</head>
+<body>
+<h1 id="fcm4e1553-ethercat步进驱动器">FCM4E1553 EtherCAT步进驱动器</h1>
+<br>
+<h2 id="产品说明书">产品说明书</h2>
+<br>
+<p><strong>型号</strong>：FCM4E1553  </p>
+<p><strong>版本</strong>：V1.0  </p>
+<p><strong>发布日期</strong>：2026-10-15</p>
+<br>
+<hr>
+<br>
+<h2 id="目录">目录</h2>
+<br>
+<ol>
+<li><a href="#1-产品概述">产品概述</a></li>
+<li><a href="#2-产品规格">产品规格</a></li>
+<li><a href="#3-接口说明">接口说明</a></li>
+<li><a href="#4-安装与接线">安装与接线</a></li>
+<li><a href="#5-led指示灯">LED指示灯</a></li>
+<li><a href="#6-接线示例">接线示例</a></li>
+<li><a href="#7-安装尺寸">安装尺寸</a></li>
+<li><a href="#8-ethercat通信">EtherCAT通信</a></li>
+<li><a href="#9-运动控制模式">运动控制模式</a></li>
+<li><a href="#10-对象字典">对象字典</a></li>
+<li><a href="#11-常见问题">常见问题</a></li>
+<li><a href="#附录">附录</a></li>
+</ol>
+<br>
+<hr>
+<br>
+<h2 id="1.-产品概述">1. 产品概述</h2>
+<br>
+<h3 id="1.1-产品简介">1.1 产品简介</h3>
+<br>
+<p>FCM4E1553是一款高性能EtherCAT步进电机驱动器，采用N32G455 MCU，支持CiA402运动控制协议。驱动器集成了EtherCAT通信接口，可实现高精度位置控制和速度控制。</p>
+<br>
+<p><strong>主要特点：</strong></p>
+<ul>
+<li>支持EtherCAT实时工业以太网通信</li>
+<li>符合CiA402设备配置标准</li>
+<li>支持PP、PV、CSP、CSV四种运动模式</li>
+<li>开环步进控制，逻辑分辨率可配置</li>
+<li>集成硬件保护功能</li>
+<li>紧凑型设计，尺寸134×77×34mm</li>
+</ul>
+<br>
+<h3 id="1.2-应用场景">1.2 应用场景</h3>
+<br>
+<ul>
+<li>自动化生产线</li>
+<li>机械手臂</li>
+<li>包装机械</li>
+<li>印刷设备</li>
+<li>实验室设备</li>
+<li>其他需要精确位置控制的场合</li>
+</ul>
+<br>
+<div class="warning">⚠️ **安全提示**</div>
+<br>
+<div class="warning">> **警告**：使用前请仔细阅读本说明书。不当使用可能导致设备损坏或人身伤害。</div>
+<blockquote></blockquote>
+<blockquote>- 本产品不具备功能安全认证（如STO），不可用于人身安全相关的应用</blockquote>
+<blockquote>- 竖直或重力负载必须配备独立的机械制动或支撑装置</blockquote>
+<blockquote>- 调试时必须确保周围无人员，并具备独立的急停装置</blockquote>
+<br>
+<hr>
+<br>
+<h2 id="2.-产品规格">2. 产品规格</h2>
+<br>
+<h3 id="2.1-电气参数">2.1 电气参数</h3>
+<br>
+<table><thead><tr><th>参数</th><th>规格</th><th>备注</th></tr></thead><tbody><tr><td><strong>电源电压</strong></td><td>DC 24V ~ 48V</td><td>推荐使用稳压电源</td></tr><tr><td><strong>输出电流</strong></td><td>0.4A ~ 6.0A</td><td>峰值电流，可通过软件配置</td></tr><tr><td><strong>控制方式</strong></td><td>PWM细分驱动</td><td>四路PWM输出</td></tr><tr><td><strong>保护功能</strong></td><td>过流、过压、欠压保护</td><td>硬件保护 + 软件监控</td></tr><tr><td><strong>功耗</strong></td><td>≤ 300W</td><td>取决于电机负载</td></tr></tbody></table><br>
+<h3 id="2.2-控制参数">2.2 控制参数</h3>
+<br>
+<table><thead><tr><th>参数</th><th>规格</th><th>备注</th></tr></thead><tbody><tr><td><strong>逻辑分辨率</strong></td><td>默认1000计数/转</td><td>可配置，不等于电机细分</td></tr><tr><td><strong>最大速度</strong></td><td>1000 rpm</td><td>软件限制，实际取决于电机</td></tr><tr><td><strong>加速度范围</strong></td><td>1 ~ 10000 rpm/s</td><td>可通过对象字典配置</td></tr><tr><td><strong>位置范围</strong></td><td>±2,147,483,647计数</td><td>32位有符号整数</td></tr><tr><td><strong>速度单位</strong></td><td>rpm 或 计数/s</td><td>可通过0x2000切换</td></tr></tbody></table><br>
+<h3 id="2.3-通信参数">2.3 通信参数</h3>
+<br>
+<table><thead><tr><th>参数</th><th>规格</th><th>备注</th></tr></thead><tbody><tr><td><strong>通信协议</strong></td><td>EtherCAT</td><td>符合IEC 61158标准</td></tr><tr><td><strong>应用层协议</strong></td><td>CoE (CAN over EtherCAT)</td><td>支持SDO和PDO</td></tr><tr><td><strong>设备配置</strong></td><td>CiA402</td><td>驱动设备标准</td></tr><tr><td><strong>默认周期</strong></td><td>2 ms (可配置)</td><td>支持SM/DC同步</td></tr><tr><td><strong>物理接口</strong></td><td>2×RJ45</td><td>支持菊花链拓扑</td></tr></tbody></table><br>
+<h3 id="2.4-输入/输出">2.4 输入/输出</h3>
+<br>
+<table><thead><tr><th>类型</th><th>数量</th><th>规格</th><th>备注</th></tr></thead><tbody><tr><td><strong>数字输入</strong></td><td>3路</td><td>18~24VDC，5~8mA</td><td>IN1, IN2, IN3</td></tr><tr><td><strong>测试点</strong></td><td>1路</td><td>18~24VDC</td><td>TP1</td></tr><tr><td><strong>数字输出</strong></td><td>1路</td><td>30VDC 50mA</td><td>OUT1</td></tr><tr><td><strong>制动输出</strong></td><td>1路</td><td>24VDC</td><td>OUT_BR</td></tr></tbody></table><br>
+<h3 id="2.5-环境条件">2.5 环境条件</h3>
+<br>
+<table><thead><tr><th>参数</th><th>规格</th></tr></thead><tbody><tr><td><strong>工作温度</strong></td><td>0°C ~ +40°C</td></tr><tr><td><strong>存储温度</strong></td><td>-20°C ~ +70°C</td></tr><tr><td><strong>湿度</strong></td><td>< 85% RH，无凝露</td></tr><tr><td><strong>防护等级</strong></td><td>IP20</td></tr><tr><td><strong>冷却方式</strong></td><td>自然散热</td></tr><tr><td><strong>安装方式</strong></td><td>DIN导轨或螺钉固定</td></tr></tbody></table><br>
+<h3 id="2.6-机械参数">2.6 机械参数</h3>
+<br>
+<table><thead><tr><th>参数</th><th>规格</th></tr></thead><tbody><tr><td><strong>外形尺寸</strong></td><td>134mm × 77mm × 34mm (长×宽×高)</td></tr><tr><td><strong>重量</strong></td><td>约350g</td></tr><tr><td><strong>接线端子</strong></td><td>弹簧端子/螺钉端子</td></tr></tbody></table><br>
+<hr>
+<br>
+<h2 id="3.-接口说明">3. 接口说明</h2>
+<br>
+<h3 id="3.1-cn1-电源接口">3.1 CN1 电源接口</h3>
+<br>
+<p><strong>接线方式</strong>：弹簧端子，支持AWG20~AWG16线径</p>
+<br>
+<table><thead><tr><th>Pin</th><th>信号</th><th>说明</th></tr></thead><tbody><tr><td>1</td><td>GND</td><td>电源地</td></tr><tr><td>2</td><td>V+</td><td>DC 24V ~ 48V</td></tr></tbody></table><br>
+<div class="warning">⚠️ **注意**：</div>
+<ul>
+<li>请使用合适容量的稳压电源</li>
+<li>建议在电源端并联电解电容（如1000μF/63V）</li>
+<li>确保接线牢固，防止接触不良</li>
+</ul>
+<br>
+<h3 id="3.2-cn2-电机接口">3.2 CN2 电机接口</h3>
+<br>
+<p><strong>接线方式</strong>：弹簧端子</p>
+<br>
+<table><thead><tr><th>Pin</th><th>信号</th><th>说明</th></tr></thead><tbody><tr><td>1</td><td>B-</td><td>电机B相负极</td></tr><tr><td>2</td><td>A-</td><td>电机A相负极</td></tr><tr><td>3</td><td>B+</td><td>电机B相正极</td></tr><tr><td>4</td><td>A+</td><td>电机A相正极</td></tr></tbody></table><br>
+<div class="warning">⚠️ **注意**：</div>
+<ul>
+<li>接线前确认电机相序</li>
+<li>两相步进电机标准接法</li>
+<li>不可带电插拔电机线</li>
+</ul>
+<br>
+<h3 id="3.3-cn3-i/o接口">3.3 CN3 I/O接口</h3>
+<br>
+<p><strong>接线方式</strong>：弹簧端子/插拔端子</p>
+<br>
+<table><thead><tr><th>Pin</th><th>信号</th><th>类型</th><th>规格</th><th>说明</th></tr></thead><tbody><tr><td>1</td><td>IN_COM</td><td>输入公共端</td><td>-</td><td>数字输入公共端</td></tr><tr><td>2</td><td>OUT_COM</td><td>输出公共端</td><td>24VDC</td><td>数字输出电源</td></tr><tr><td>3</td><td>IN1</td><td>数字输入1</td><td>18~24VDC</td><td>可配置功能</td></tr><tr><td>4</td><td>OUT1</td><td>数字输出1</td><td>30VDC 50mA</td><td>可配置功能</td></tr><tr><td>5</td><td>IN2</td><td>数字输入2</td><td>18~24VDC</td><td>可配置功能</td></tr><tr><td>6</td><td>OUT_BR</td><td>制动输出</td><td>24VDC</td><td>电机制动控制</td></tr><tr><td>7</td><td>IN3</td><td>数字输入3</td><td>18~24VDC</td><td>可配置功能</td></tr><tr><td>8</td><td>TP1</td><td>测试点</td><td>18~24VDC</td><td>调试用</td></tr></tbody></table><br>
+<p><strong>输入特性</strong>：</p>
+<ul>
+<li>兼容NPN/PNP传感器</li>
+<li>滤波时间：约2ms</li>
+<li>电流：5~8mA</li>
+</ul>
+<br>
+<p><strong>输出特性</strong>：</p>
+<ul>
+<li>开漏输出</li>
+<li>最大电流：50mA</li>
+<li>最大电压：30VDC</li>
+</ul>
+<br>
+<h3 id="3.4-cn5/cn6-ethercat接口">3.4 CN5/CN6 EtherCAT接口</h3>
+<br>
+<p><strong>接口类型</strong>：标准RJ45以太网接口×2</p>
+<br>
+<table><thead><tr><th>Pin</th><th>信号</th><th>说明</th></tr></thead><tbody><tr><td>1</td><td>E-TX+</td><td>发送+</td></tr><tr><td>2</td><td>E-TX-</td><td>发送-</td></tr><tr><td>3</td><td>E-RX+</td><td>接收+</td></tr><tr><td>4</td><td>NC</td><td>未使用</td></tr><tr><td>5</td><td>NC</td><td>未使用</td></tr><tr><td>6</td><td>E-RX-</td><td>接收-</td></tr><tr><td>7</td><td>NC</td><td>未使用</td></tr><tr><td>8</td><td>NC</td><td>未使用</td></tr></tbody></table><br>
+<p><strong>连接说明</strong>：</p>
+<ul>
+<li>CN5：输入（IN），连接主站或上一级设备</li>
+<li>CN6：输出（OUT），连接下一级设备</li>
+<li>使用标准以太网线（建议屏蔽双绞线）</li>
+<li>支持菊花链拓扑</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="4.-安装与接线">4. 安装与接线</h2>
+<br>
+<h3 id="4.1-安装前检查">4.1 安装前检查</h3>
+<br>
+<ol>
+<li>✓ 检查驱动器外观无损坏</li>
+<li>✓ 确认供电电压在规格范围内（24~48VDC）</li>
+<li>✓ 准备合适规格的电机（两相步进电机）</li>
+<li>✓ 准备EtherCAT网线（屏蔽双绞线）</li>
+</ol>
+<br>
+<h3 id="4.2-安装步骤">4.2 安装步骤</h3>
+<br>
+<p><strong>方式一：DIN导轨安装</strong></p>
+<br>
+<ol>
+<li>将驱动器挂钩卡入35mm标准DIN导轨</li>
+<li>向下按压至听到"咔"声</li>
+<li>确认安装牢固</li>
+</ol>
+<br>
+<p><strong>方式二：螺钉固定</strong></p>
+<br>
+<ol>
+<li>使用M4螺钉（4个）</li>
+<li>安装孔间距见第7章尺寸图</li>
+<li>推荐力矩：1.2 N·m</li>
+</ol>
+<br>
+<h3 id="4.3-接线步骤">4.3 接线步骤</h3>
+<br>
+<div class="warning">⚠️ **所有接线必须在断电状态下进行**</div>
+<br>
+<p><strong>步骤1：电源接线</strong></p>
+<pre><code class="language-">
+电源+ → CN1 Pin2 (V+)
+电源- → CN1 Pin1 (GND)
+</code></pre>
+<br>
+<p><strong>步骤2：电机接线</strong></p>
+<pre><code class="language-">
+电机A+ → CN2 Pin4
+电机A- → CN2 Pin2
+电机B+ → CN2 Pin3
+电机B- → CN2 Pin1
+</code></pre>
+<br>
+<p><strong>步骤3：EtherCAT接线</strong></p>
+<pre><code class="language-">
+主站/上一级 → CN5 (IN)
+下一级 → CN6 (OUT)
+</code></pre>
+<br>
+<p><strong>步骤4：I/O接线（可选）</strong></p>
+<ul>
+<li>根据实际需求连接数字输入/输出</li>
+<li>参考第6章接线示例</li>
+</ul>
+<br>
+<h3 id="4.4-接线注意事项">4.4 接线注意事项</h3>
+<br>
+<ol>
+<li>⚠️ 电源线建议使用≥1.5mm²导线</li>
+<li>⚠️ 电机线尽量远离信号线，避免干扰</li>
+<li>⚠️ EtherCAT网线建议使用屏蔽双绞线</li>
+<li>⚠️ 确保所有端子接线牢固</li>
+<li>⚠️ 预留足够的线缆长度，便于维护</li>
+</ol>
+<br>
+<hr>
+<br>
+<h2 id="5.-led指示灯">5. LED指示灯</h2>
+<br>
+<p>驱动器前面板有3个LED指示灯：</p>
+<br>
+<h3 id="5.1-电源指示灯（绿色）">5.1 电源指示灯（绿色）</h3>
+<br>
+<table><thead><tr><th>状态</th><th>说明</th></tr></thead><tbody><tr><td>常亮</td><td>电源正常</td></tr><tr><td>熄灭</td><td>无电源或电源异常</td></tr></tbody></table><br>
+<h3 id="5.2-通信指示灯（黄色）">5.2 通信指示灯（黄色）</h3>
+<br>
+<table><thead><tr><th>状态</th><th>说明</th></tr></thead><tbody><tr><td>快速闪烁</td><td>INIT状态</td></tr><tr><td>慢速闪烁</td><td>PREOP状态</td></tr><tr><td>单次闪烁</td><td>SAFEOP状态</td></tr><tr><td>常亮</td><td>OP状态（正常运行）</td></tr><tr><td>熄灭</td><td>无通信</td></tr></tbody></table><br>
+<h3 id="5.3-故障指示灯（红色）">5.3 故障指示灯（红色）</h3>
+<br>
+<table><thead><tr><th>状态</th><th>说明</th></tr></thead><tbody><tr><td>常亮</td><td>故障状态</td></tr><tr><td>闪烁</td><td>警告状态</td></tr><tr><td>熄灭</td><td>正常</td></tr></tbody></table><br>
+<hr>
+<br>
+<h2 id="6.-接线示例">6. 接线示例</h2>
+<br>
+<h3 id="6.1-基本接线">6.1 基本接线</h3>
+<br>
+<pre><code class="language-">
+[电源] -------&gt; CN1 (V+/GND)
+                 |
+[电机] -------&gt; CN2 (A+/A-/B+/B-)
+                 |
+[主站] -------&gt; CN5 (IN)
+                 |
+[下级] &lt;------- CN6 (OUT)
+</code></pre>
+<br>
+<h3 id="6.2-带npn传感器的接线">6.2 带NPN传感器的接线</h3>
+<br>
+<pre><code class="language-">
+                 24V
+                  |
+              [传感器]
+                  |
+                  +-----&gt; IN1/IN2/IN3
+                  |
+                [负载]
+                  |
+               IN_COM
+</code></pre>
+<br>
+<h3 id="6.3-带pnp传感器的接线">6.3 带PNP传感器的接线</h3>
+<br>
+<pre><code class="language-">
+              IN_COM
+                  |
+              [传感器]
+                  |
+                  +-----&gt; IN1/IN2/IN3
+                  |
+                [负载]
+                  |
+                 GND
+</code></pre>
+<br>
+<h3 id="6.4-数字输出接线">6.4 数字输出接线</h3>
+<br>
+<pre><code class="language-">
+            OUT_COM (24V)
+                  |
+                OUT1
+                  |
+              [继电器]
+              [指示灯]
+                  |
+                 GND
+</code></pre>
+<br>
+<hr>
+<br>
+<h2 id="7.-安装尺寸">7. 安装尺寸</h2>
+<br>
+<pre><code class="language-">
+                134mm
+    ┌───────────────────────────┐
+    │                           │
+    │    FCM4E1553              │ 77mm
+    │                           │
+    └───────────────────────────┘
+              34mm (深度)
+
+安装孔：4×M4
+孔间距：横向124mm，纵向67mm
+</code></pre>
+<br>
+<p><strong>尺寸图说明</strong>：</p>
+<ul>
+<li>外形尺寸：134mm(长) × 77mm(宽) × 34mm(高)</li>
+<li>DIN导轨：35mm标准导轨</li>
+<li>散热间隙：上下左右预留≥10mm空间</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="8.-ethercat通信">8. EtherCAT通信</h2>
+<br>
+<h3 id="8.1-网络拓扑">8.1 网络拓扑</h3>
+<br>
+<p>FCM4E1553支持标准EtherCAT菊花链拓扑：</p>
+<br>
+<pre><code class="language-">
+[主站] ─── [驱动器1] ─── [驱动器2] ─── [驱动器3]
+           CN5 → CN6    CN5 → CN6    CN5 → CN6
+</code></pre>
+<br>
+<h3 id="8.2-网络配置">8.2 网络配置</h3>
+<br>
+<p><strong>设备标识</strong>：</p>
+<ul>
+<li>Vendor ID: 0x00000E66</li>
+<li>Product Code: 0x15530111</li>
+<li>Revision: 0x00000003</li>
+</ul>
+<br>
+<p><strong>ESI文件</strong>：<code>FCM4E1553_CiA402_SingleAxis_Rev03.xml</code></p>
+<br>
+<h3 id="8.3-同步模式">8.3 同步模式</h3>
+<br>
+<table><thead><tr><th>模式</th><th>说明</th><th>推荐周期</th></tr></thead><tbody><tr><td><strong>Free Run</strong></td><td>非同步模式</td><td>不固定</td></tr><tr><td><strong>SM-Synchron</strong></td><td>同步管理器同步</td><td>1~10ms</td></tr><tr><td><strong>DC-Synchron</strong></td><td>分布式时钟同步</td><td>0.5~10ms</td></tr></tbody></table><br>
+<p><strong>默认配置</strong>：</p>
+<ul>
+<li>推荐使用DC-Synchron模式</li>
+<li>默认周期：2ms</li>
+<li>SYNC0：已启用</li>
+<li>SYNC1：未连接（硬件未接线）</li>
+</ul>
+<br>
+<h3 id="8.4-pdo映射">8.4 PDO映射</h3>
+<br>
+<p><strong>默认RxPDO（0x1600）- 主站→驱动器，12字节</strong>：</p>
+<br>
+<table><thead><tr><th>字节偏移</th><th>对象</th><th>类型</th><th>说明</th></tr></thead><tbody><tr><td>0-1</td><td>0x6040</td><td>UINT16</td><td>控制字</td></tr><tr><td>2-5</td><td>0x607A</td><td>INT32</td><td>目标位置</td></tr><tr><td>6-9</td><td>0x60FF</td><td>INT32</td><td>目标速度</td></tr><tr><td>10</td><td>0x6060</td><td>INT8</td><td>运行模式</td></tr><tr><td>11</td><td>-</td><td>UINT8</td><td>填充</td></tr></tbody></table><br>
+<p><strong>默认TxPDO（0x1A00）- 驱动器→主站，12字节</strong>：</p>
+<br>
+<table><thead><tr><th>字节偏移</th><th>对象</th><th>类型</th><th>说明</th></tr></thead><tbody><tr><td>0-1</td><td>0x6041</td><td>UINT16</td><td>状态字</td></tr><tr><td>2-5</td><td>0x6064</td><td>INT32</td><td>实际位置</td></tr><tr><td>6-9</td><td>0x606C</td><td>INT32</td><td>实际速度</td></tr><tr><td>10</td><td>0x6061</td><td>INT8</td><td>当前模式</td></tr><tr><td>11</td><td>-</td><td>UINT8</td><td>填充</td></tr></tbody></table><br>
+<div class="warning">⚠️ **重要说明**：</div>
+<ul>
+<li>0x6064（实际位置）是内部励磁相位计数，<strong>不是编码器反馈</strong></li>
+<li>0x606C（实际速度）是相位推进速度，<strong>不是轴端测速</strong></li>
+<li>本驱动器为开环控制，无编码器接口</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="9.-运动控制模式">9. 运动控制模式</h2>
+<br>
+<h3 id="9.1-支持的模式">9.1 支持的模式</h3>
+<br>
+<p>FCM4E1553支持以下4种CiA402标准运动模式：</p>
+<br>
+<table><thead><tr><th>模式</th><th>代码</th><th>名称</th><th>说明</th></tr></thead><tbody><tr><td><strong>PP</strong></td><td>1</td><td>Profile Position</td><td>轮廓位置模式</td></tr><tr><td><strong>PV</strong></td><td>3</td><td>Profile Velocity</td><td>轮廓速度模式</td></tr><tr><td><strong>CSP</strong></td><td>8</td><td>Cyclic Sync Position</td><td>周期同步位置模式</td></tr><tr><td><strong>CSV</strong></td><td>9</td><td>Cyclic Sync Velocity</td><td>周期同步速度模式</td></tr></tbody></table><br>
+<p>❌ <strong>不支持的模式</strong>：</p>
+<ul>
+<li>HM (6) - 回零模式（硬件未实现）</li>
+<li>PT (4) / CST (10) - 力矩模式（无力矩反馈）</li>
+</ul>
+<br>
+<h3 id="9.2-pp---轮廓位置模式">9.2 PP - 轮廓位置模式</h3>
+<br>
+<p><strong>适用场景</strong>：点到点定位</p>
+<br>
+<p><strong>控制流程</strong>：</p>
+<br>
+<ol>
+<li><strong>设置模式</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x6060 = 1  (设置PP模式)</p>
+<p>   确认0x6061 = 1</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>配置参数</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x6081 = 100   (轮廓速度, rpm)</p>
+<p>   0x6083 = 300   (加速度, rpm/s)</p>
+<p>   0x6084 = 300   (减速度, rpm/s)</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>启动运动</strong>（绝对位置）：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x607A = 5000  (目标位置, 计数)</p>
+<p>   0x6040 = 0x002F</p>
+<p>   0x6040 = 0x003F  (bit4: 0→1触发)</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>等待完成</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   监控0x6041 bit10 = 1 (到位)</p>
+<p>   <code>`</code></p>
+<br>
+<p><strong>握手协议</strong>：</p>
+<ul>
+<li>bit4 (new setpoint): 0→1 触发新目标</li>
+<li>bit12 (setpoint ack): 驱动器确认</li>
+<li>下一个目标前必须先清bit4再拉高</li>
+</ul>
+<br>
+<p><strong>绝对/相对位置</strong>：</p>
+<ul>
+<li>bit6=0: 绝对位置（0x607A为目标坐标）</li>
+<li>bit6=1: 相对位置（0x607A为相对当前位置的增量）</li>
+</ul>
+<br>
+<h3 id="9.3-pv---轮廓速度模式">9.3 PV - 轮廓速度模式</h3>
+<br>
+<p><strong>适用场景</strong>：恒速运行</p>
+<br>
+<p><strong>控制流程</strong>：</p>
+<br>
+<ol>
+<li><strong>设置模式</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x6060 = 3</p>
+<p>   确认0x6061 = 3</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>配置参数</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x607F = 1000   (最大速度限制, rpm)</p>
+<p>   0x6083 = 300    (加速度)</p>
+<p>   0x6084 = 300    (减速度)</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>启动运动</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x60FF = 100    (目标速度, rpm, 正值=正转, 负值=反转)</p>
+<p>   0x6040 = 0x000F (使能)</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>停止运动</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x60FF = 0      (设置速度为0)</p>
+<p>   <code>`</code></p>
+<br>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>非零速度目标会持续旋转</li>
+<li>停止需设置目标速度为0或禁用驱动器</li>
+<li>Halt功能：0x6040 bit8=1可减速暂停</li>
+</ul>
+<br>
+<h3 id="9.4-csp---周期同步位置模式">9.4 CSP - 周期同步位置模式</h3>
+<br>
+<p><strong>适用场景</strong>：主站实时轨迹控制</p>
+<br>
+<p><strong>控制流程</strong>：</p>
+<br>
+<ol>
+<li><strong>设置模式</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x6060 = 8</p>
+<p>   确认0x6061 = 8</p>
+<p>   确认0x6041 bit12 = 1 (跟随命令标志)</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>配置参数</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x6081 = 100   (跟随速度上限, rpm)</p>
+<p>   0x607F = 1000  (最大速度限制, rpm)</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>周期更新位置</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   每个周期(如2ms)更新0x607A</p>
+<p>   主站负责轨迹规划</p>
+<p>   <code>`</code></p>
+<br>
+<p><strong>重要特性</strong>：</p>
+<ul>
+<li>⏱️ <strong>20ms相位跟随</strong>：驱动器内部使用约20ms滤波平滑PDO位置</li>
+<li>📊 <strong>滞后时间</strong>：会引入约20ms的相位滞后</li>
+<li>🔄 <strong>持续更新</strong>：必须每周期更新目标，不能给一次目标就停止更新</li>
+<li>⚠️ <strong>失联保护</strong>：超过10个周期未更新会触发保护停机</li>
+</ul>
+<br>
+<p><strong>位置偏移</strong>：</p>
+<pre><code class="language-">
+实际目标 = 0x607A + 0x60B0 (位置偏移)
+</code></pre>
+<br>
+<p><strong>到位判断</strong>：</p>
+<ul>
+<li>bit10 (target reached): 目标完成标志</li>
+<li>条件：位置匹配 AND 速度为0</li>
+<li>建议等待连续100ms确认静止</li>
+</ul>
+<br>
+<h3 id="9.5-csv---周期同步速度模式">9.5 CSV - 周期同步速度模式</h3>
+<br>
+<p><strong>适用场景</strong>：主站实时速度控制</p>
+<br>
+<p><strong>控制流程</strong>：</p>
+<br>
+<ol>
+<li><strong>设置模式</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x6060 = 9 (默认上电模式)</p>
+<p>   确认0x6061 = 9</p>
+<p>   确认0x6041 bit12 = 1</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>配置参数</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x607F = 1000  (最大速度限制)</p>
+<p>   <code>`</code></p>
+<br>
+<ol>
+<li><strong>周期更新速度</strong>：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   每个周期更新0x60FF</p>
+<p>   速度=0也是有效命令</p>
+<p>   <code>`</code></p>
+<br>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>与PV类似，但主站周期控制</li>
+<li>目标速度为0也必须持续发送</li>
+<li>受0x607F限制</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="10.-对象字典">10. 对象字典</h2>
+<br>
+<h3 id="10.1-cia402标准对象">10.1 CiA402标准对象</h3>
+<br>
+<h4 id="10.1.1-设备信息">10.1.1 设备信息</h4>
+<br>
+<table><thead><tr><th>地址</th><th>名称</th><th>类型</th><th>权限</th><th>默认值</th><th>说明</th></tr></thead><tbody><tr><td>0x1000</td><td>设备类型</td><td>U32</td><td>RO</td><td>0x00020192</td><td>CiA402驱动器</td></tr><tr><td>0x1001</td><td>错误寄存器</td><td>U8</td><td>RO</td><td>0</td><td>错误分类位</td></tr><tr><td>0x1008</td><td>设备名称</td><td>String</td><td>RO</td><td>FCM4E1553</td><td>-</td></tr><tr><td>0x1009</td><td>硬件版本</td><td>String</td><td>RO</td><td>0.7</td><td>-</td></tr><tr><td>0x100A</td><td>软件版本</td><td>String</td><td>RO</td><td>0.2</td><td>-</td></tr><tr><td>0x1018:01</td><td>Vendor ID</td><td>U32</td><td>RO</td><td>0x00000E66</td><td>-</td></tr><tr><td>0x1018:02</td><td>Product Code</td><td>U32</td><td>RO</td><td>0x15530111</td><td>-</td></tr><tr><td>0x1018:03</td><td>Revision</td><td>U32</td><td>RO</td><td>0x00000003</td><td>-</td></tr><tr><td>0x1018:04</td><td>Serial Number</td><td>U32</td><td>RO</td><td>1</td><td>序列号</td></tr></tbody></table><br>
+<h4 id="10.1.2-控制对象">10.1.2 控制对象</h4>
+<br>
+<table><thead><tr><th>地址</th><th>名称</th><th>类型</th><th>权限</th><th>默认值</th><th>单位</th><th>说明</th></tr></thead><tbody><tr><td>0x6040</td><td>控制字</td><td>U16</td><td>RW</td><td>0</td><td>-</td><td>状态机控制</td></tr><tr><td>0x6041</td><td>状态字</td><td>U16</td><td>RO</td><td>-</td><td>-</td><td>状态反馈</td></tr><tr><td>0x603F</td><td>错误码</td><td>U16</td><td>RO</td><td>0</td><td>-</td><td>CiA402错误</td></tr><tr><td>0x6060</td><td>请求模式</td><td>I8</td><td>RW</td><td>9</td><td>-</td><td>1/3/8/9</td></tr><tr><td>0x6061</td><td>当前模式</td><td>I8</td><td>RO</td><td>9</td><td>-</td><td>实际模式</td></tr></tbody></table><br>
+<h4 id="10.1.3-位置对象">10.1.3 位置对象</h4>
+<br>
+<table><thead><tr><th>地址</th><th>名称</th><th>类型</th><th>权限</th><th>默认值</th><th>单位</th><th>说明</th></tr></thead><tbody><tr><td>0x607A</td><td>目标位置</td><td>I32</td><td>RW</td><td>0</td><td>计数</td><td>PP/CSP目标</td></tr><tr><td>0x6064</td><td>实际位置</td><td>I32</td><td>RO</td><td>0</td><td>计数</td><td>内部计数⚠️</td></tr><tr><td>0x60B0</td><td>位置偏移</td><td>I32</td><td>RW</td><td>0</td><td>计数</td><td>CSP偏移</td></tr><tr><td>0x607D:01</td><td>软限位最小</td><td>I32</td><td>RW</td><td>-2000000000</td><td>计数</td><td>未实现⚠️</td></tr><tr><td>0x607D:02</td><td>软限位最大</td><td>I32</td><td>RW</td><td>2000000000</td><td>计数</td><td>未实现⚠️</td></tr></tbody></table><br>
+<div class="warning">⚠️ **重要说明**：</div>
+<ul>
+<li><strong>0x6064是内部励磁相位计数，不是编码器位置</strong></li>
+<li><strong>0x607D软件限位仅存储，未接入保护逻辑</strong></li>
+</ul>
+<br>
+<h4 id="10.1.4-速度对象">10.1.4 速度对象</h4>
+<br>
+<table><thead><tr><th>地址</th><th>名称</th><th>类型</th><th>权限</th><th>默认值</th><th>单位</th><th>说明</th></tr></thead><tbody><tr><td>0x60FF</td><td>目标速度</td><td>I32</td><td>RW</td><td>0</td><td>rpm*</td><td>PV/CSV目标</td></tr><tr><td>0x606C</td><td>实际速度</td><td>I32</td><td>RO</td><td>0</td><td>rpm*</td><td>内部速度⚠️</td></tr><tr><td>0x607F</td><td>最大速度</td><td>U32</td><td>RW</td><td>1000</td><td>rpm*</td><td>全局限制</td></tr><tr><td>0x6081</td><td>轮廓速度</td><td>U32</td><td>RW</td><td>100</td><td>rpm*</td><td>PP速度</td></tr></tbody></table><br>
+<p>*单位由0x2000决定，默认rpm</p>
+<br>
+<div class="warning">⚠️ **0x606C是相位推进速度，不是轴端测速**</div>
+<br>
+<h4 id="10.1.5-加减速对象">10.1.5 加减速对象</h4>
+<br>
+<table><thead><tr><th>地址</th><th>名称</th><th>类型</th><th>权限</th><th>默认值</th><th>单位</th><th>说明</th></tr></thead><tbody><tr><td>0x6083</td><td>轮廓加速度</td><td>U32</td><td>RW</td><td>300</td><td>rpm/s*</td><td>-</td></tr><tr><td>0x6084</td><td>轮廓减速度</td><td>U32</td><td>RW</td><td>300</td><td>rpm/s*</td><td>-</td></tr><tr><td>0x6085</td><td>快速停止减速度</td><td>U32</td><td>RW</td><td>300</td><td>rpm/s*</td><td>Quick Stop</td></tr></tbody></table><br>
+<p>*单位由0x2000决定</p>
+<br>
+<h4 id="10.1.6-停止选项">10.1.6 停止选项</h4>
+<br>
+<table><thead><tr><th>地址</th><th>名称</th><th>类型</th><th>权限</th><th>默认值</th><th>支持值</th><th>说明</th></tr></thead><tbody><tr><td>0x605A</td><td>Quick Stop选项</td><td>I16</td><td>RW</td><td>2</td><td>0/1/2/5/6</td><td>快速停止方式</td></tr><tr><td>0x605B</td><td>Shutdown选项</td><td>I16</td><td>RW</td><td>0</td><td>0/1</td><td>关机方式</td></tr><tr><td>0x605C</td><td>Disable Op选项</td><td>I16</td><td>RW</td><td>1</td><td>0/1</td><td>禁用方式</td></tr><tr><td>0x605D</td><td>Halt选项</td><td>I16</td><td>RW</td><td>1</td><td>1/2</td><td>暂停减速度</td></tr><tr><td>0x605E</td><td>Fault选项</td><td>I16</td><td>RW</td><td>2</td><td>0/1/2</td><td>故障反应</td></tr></tbody></table><br>
+<p><strong>Quick Stop选项说明</strong>：</p>
+<ul>
+<li>0: 立即禁用（无减速）</li>
+<li>1: 按0x6084减速</li>
+<li>2: 按0x6085减速（默认）</li>
+<li>5/6: 减速后保持Quick Stop Active状态</li>
+</ul>
+<br>
+<h3 id="10.2-厂商对象">10.2 厂商对象</h3>
+<br>
+<h4 id="10.2.1-配置对象">10.2.1 配置对象</h4>
+<br>
+<table><thead><tr><th>地址</th><th>名称</th><th>类型</th><th>权限</th><th>默认值</th><th>范围</th><th>说明</th></tr></thead><tbody><tr><td>0x2000</td><td>速度单位选择</td><td>U16</td><td>RW</td><td>0</td><td>0/1</td><td>0=rpm, 1=计数/s</td></tr><tr><td>0x206C</td><td>厂商错误码</td><td>U16</td><td>RO</td><td>0</td><td>-</td><td>详细故障码</td></tr></tbody></table><br>
+<p><strong>0x2000速度单位切换</strong>：</p>
+<ul>
+<li>⚠️ 仅在PREOP状态、未使能、已停止时可修改</li>
+<li>切换后会重置速度参数</li>
+<li>不保存到掉电后</li>
+</ul>
+<br>
+<h4 id="10.2.2-错误码对照">10.2.2 错误码对照</h4>
+<br>
+<table><thead><tr><th>厂商错误码(0x206C)</th><th>CiA402错误码(0x603F)</th><th>说明</th></tr></thead><tbody><tr><td>10</td><td>0x7120</td><td>VFO保护触发</td></tr><tr><td>11</td><td>0x3321</td><td>缺相/电枢回路中断</td></tr><tr><td>13</td><td>0x3220</td><td>母线欠压</td></tr><tr><td>14</td><td>0x3210</td><td>母线过压</td></tr></tbody></table><br>
+<h3 id="10.3-同步对象">10.3 同步对象</h3>
+<br>
+<table><thead><tr><th>地址</th><th>名称</th><th>类型</th><th>说明</th></tr></thead><tbody><tr><td>0x1C32:01</td><td>SM2同步类型</td><td>U16</td><td>输出SM同步方式</td></tr><tr><td>0x1C32:02</td><td>SM2周期时间</td><td>U32</td><td>纳秒为单位</td></tr><tr><td>0x1C32:05</td><td>最小周期</td><td>U32</td><td>500000 ns (0.5ms)</td></tr><tr><td>0x1C32:0A</td><td>SYNC0周期</td><td>U32</td><td>纳秒为单位</td></tr><tr><td>0x1C33:xx</td><td>SM3参数</td><td>-</td><td>输入SM，结构同上</td></tr><tr><td>0x10F1:02</td><td>同步错误门限</td><td>U16</td><td>默认4次</td></tr></tbody></table><br>
+<hr>
+<br>
+<h2 id="11.-常见问题">11. 常见问题</h2>
+<br>
+<h3 id="11.1-启动和使能">11.1 启动和使能</h3>
+<br>
+<p><strong>Q1: 如何启动电机运动？</strong></p>
+<br>
+<p>A: 完整启动流程：</p>
+<br>
+<ol>
+<li>确认EtherCAT已进入OP状态</li>
+<li>确认无故障（0x6041 bit3=0）</li>
+<li>确认数据有效（主站WcState正常）</li>
+<li>发送控制字序列：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x6040 = 0x0006  (Shutdown)</p>
+<p>   等待0x6041 = 0x0021 (Ready to Switch On)</p>
+<br>
+<p>   0x6040 = 0x0007  (Switch On)</p>
+<p>   等待0x6041 = 0x0023 (Switched On)</p>
+<br>
+<p>   0x6040 = 0x000F  (Enable Operation)</p>
+<p>   等待0x6041 = 0x0027 (Operation Enabled)</p>
+<p>   <code>`</code></p>
+<ol>
+<li>设置目标位置/速度</li>
+<li>开始运动</li>
+</ol>
+<br>
+<p><strong>Q2: 使能后电机不转？</strong></p>
+<br>
+<p>A: 检查项：</p>
+<ul>
+<li>✓ 确认0x6061等于请求的模式</li>
+<li>✓ PP模式：检查是否发送了bit4上升沿</li>
+<li>✓ 检查目标值是否为0</li>
+<li>✓ 检查0x6041 bit12状态</li>
+<li>✓ 检查最大速度限制0x607F</li>
+<li>✓ 用万用表测量电机绕组是否通电</li>
+</ul>
+<br>
+<p><strong>Q3: EtherCAT状态无法进入OP？</strong></p>
+<br>
+<p>A: 可能原因：</p>
+<ul>
+<li>网线未连接或损坏</li>
+<li>ESI文件与固件不匹配</li>
+<li>主站配置错误</li>
+<li>检查LED指示灯状态</li>
+</ul>
+<br>
+<h3 id="11.2-运动控制">11.2 运动控制</h3>
+<br>
+<p><strong>Q4: PP模式给一次目标却一直转？</strong></p>
+<br>
+<p>A: 可能原因：</p>
+<ul>
+<li>实际模式不是PP（检查0x6061）</li>
+<li>0x60FF目标速度不为0</li>
+<li>PLC每周期重复触发bit4</li>
+<li>检查PDO映射是否被覆盖</li>
+</ul>
+<br>
+<p><strong>Q5: CSP模式运行一段时间自动停转？</strong></p>
+<br>
+<p>A: 这是本文档重点解决的问题，可能原因：</p>
+<br>
+<ol>
+<li><strong>PDO失联保护触发</strong>：超过10个周期未更新</li>
+</ol>
+<ul>
+<li>检查主站PLC任务是否停止</li>
+<li>检查WcState是否异常</li>
+</ul>
+<br>
+<ol>
+<li><strong>通信异常</strong>：</li>
+</ol>
+<ul>
+<li>查看gEscPdiDiag.faultLatched</li>
+<li>查看主站错误计数</li>
+</ul>
+<br>
+<ol>
+<li><strong>硬件故障</strong>：</li>
+</ol>
+<ul>
+<li>查看0x603F错误码</li>
+<li>查看0x206C厂商错误码</li>
+</ul>
+<br>
+<p><strong>解决方法</strong>：</p>
+<ul>
+<li>参考已提供的诊断工具</li>
+<li>查看<code>docs/CSP_STOPPING_ISSUE_SOLUTION_PLAN.md</code></li>
+<li>保存停机快照进行分析</li>
+</ul>
+<br>
+<p><strong>Q6: 位置到位判断不准确？</strong></p>
+<br>
+<p>A: 注意：</p>
+<ul>
+<li>0x6064是内部计数，不是机械位置</li>
+<li>需要外部测量验证机械精度</li>
+<li>开环控制可能存在丢步</li>
+<li>到位判断需等待静止确认</li>
+</ul>
+<br>
+<h3 id="11.3-参数配置">11.3 参数配置</h3>
+<br>
+<p><strong>Q7: 如何修改速度单位？</strong></p>
+<br>
+<p>A: 修改0x2000，步骤：</p>
+<ol>
+<li>进入PREOP状态</li>
+<li>确保已禁用驱动器</li>
+<li>写入0x2000 = 0 (rpm) 或 1 (计数/s)</li>
+<li>重新配置速度参数</li>
+<li>参数不保存到掉电后</li>
+</ol>
+<br>
+<p><strong>Q8: 如何修改逻辑分辨率（每转计数）？</strong></p>
+<br>
+<p>A: 当前版本不支持通过CoE修改，固定为1000计数/转。修改需要：</p>
+<ul>
+<li>修改固件中的sxifen变量</li>
+<li>重新编译烧录</li>
+</ul>
+<br>
+<p><strong>Q9: 参数掉电后丢失？</strong></p>
+<br>
+<p>A: 当前版本不支持参数持久化，每次上电后恢复默认值。</p>
+<br>
+<h3 id="11.4-故障处理">11.4 故障处理</h3>
+<br>
+<p><strong>Q10: 故障如何复位？</strong></p>
+<br>
+<p>A: 故障复位流程：</p>
+<br>
+<ol>
+<li>检查故障原因（0x603F, 0x206C）</li>
+<li>消除故障根本原因</li>
+<li>发送Fault Reset：</li>
+</ol>
+<p>   <code>`</code></p>
+<p>   0x6040 = 0x0000  (先清零)</p>
+<p>   等待</p>
+<p>   0x6040 = 0x0080  (上升沿)</p>
+<p>   <code>`</code></p>
+<ol>
+<li>等待0x6041退出Fault状态</li>
+<li>重新启用驱动器</li>
+</ol>
+<br>
+<div class="warning">⚠️ **不能循环自动复位掩盖故障**</div>
+<br>
+<p><strong>Q11: PDI故障如何恢复？</strong></p>
+<br>
+<p>A: 特殊流程（详见技术文档）：</p>
+<ol>
+<li>保持0x6040 = 0x0000</li>
+<li>等待通信稳定（pdoSincePdiError ≥ 32）</li>
+<li>确认电机静止</li>
+<li>发送Fault Reset</li>
+<li>查看gEscPdiDiag.faultLatched清零</li>
+</ol>
+<br>
+<p><strong>Q12: 常见错误码含义？</strong></p>
+<br>
+<table><thead><tr><th>错误码</th><th>说明</th><th>解决方法</th></tr></thead><tbody><tr><td>0x7120</td><td>VFO保护</td><td>检查过流/电机/接线</td></tr><tr><td>0x3220</td><td>欠压</td><td>检查电源电压</td></tr><tr><td>0x3210</td><td>过压</td><td>检查电源/再生</td></tr><tr><td>0x7500</td><td>PDI故障</td><td>检查通信质量</td></tr></tbody></table><br>
+<h3 id="11.5-调试技巧">11.5 调试技巧</h3>
+<br>
+<p><strong>Q13: 如何查看内部诊断变量？</strong></p>
+<br>
+<p>A: 使用Keil调试器Watch窗口：</p>
+<pre><code class="language-">
+gEscPdiDiag          - PDI诊断
+gEcatCommDiag        - 通信诊断
+gEcatSyncDiag        - 同步诊断
+gEcatPulseDiag       - 相位诊断
+gMotorIsrMaxCycles   - 中断时间
+</code></pre>
+<br>
+<p><strong>Q14: 如何测量机械精度？</strong></p>
+<br>
+<p>A: </p>
+<ul>
+<li>在轴端做标记</li>
+<li>使用角度测量仪/编码器</li>
+<li>运行PP模式整圈运动</li>
+<li>对比标记位置偏差</li>
+<li>不能仅靠0x6064判断</li>
+</ul>
+<br>
+<p><strong>Q15: 如何优化停止时间？</strong></p>
+<br>
+<p>A: 调整减速度参数：</p>
+<ul>
+<li>0x6084（正常减速）</li>
+<li>0x6085（快速停止减速）</li>
+<li>范围：1~10000 rpm/s</li>
+<li>值越大停止越快</li>
+</ul>
+<br>
+<hr>
+<br>
+<h2 id="12.-附录">12. 附录</h2>
+<br>
+<h3 id="附录a:-cia402状态机">附录A: CiA402状态机</h3>
+<br>
+<pre><code class="language-">
+                ┌─────────────┐
+                │   Start     │
+                └──────┬──────┘
+                       │
+                       v
+            ┌──────────────────┐
+            │ Not Ready to     │
+            │ Switch On        │
+            └────────┬─────────┘
+                     │ Automatic
+                     v
+            ┌──────────────────┐
+            │ Switch On        │&lt;────────┐
+            │ Disabled         │         │
+            └────┬──────┬──────┘         │
+                 │      │                │
+        Shutdown │      │ Disable Voltage│
+                 v      └────────────────┘
+            ┌──────────────────┐
+            │ Ready to         │
+            │ Switch On        │
+            └────────┬─────────┘
+                     │ Switch On
+                     v
+            ┌──────────────────┐
+            │ Switched On      │
+            └────────┬─────────┘
+                     │ Enable Operation
+                     v
+            ┌──────────────────┐
+            │ Operation        │──────&gt; Quick Stop
+            │ Enabled          │
+            └──────────────────┘
+                     │
+                     │ Fault
+                     v
+            ┌──────────────────┐
+            │ Fault            │
+            └──────────────────┘
+</code></pre>
+<br>
+<h3 id="附录b:-控制字位定义">附录B: 控制字位定义</h3>
+<br>
+<table><thead><tr><th>Bit</th><th>名称</th><th>功能</th></tr></thead><tbody><tr><td>0</td><td>Switch On</td><td>状态机控制</td></tr><tr><td>1</td><td>Enable Voltage</td><td>电压使能</td></tr><tr><td>2</td><td>Quick Stop</td><td>快速停止控制</td></tr><tr><td>3</td><td>Enable Operation</td><td>运行使能</td></tr><tr><td>4</td><td>New Setpoint</td><td>PP新目标触发</td></tr><tr><td>5</td><td>Change Immediately</td><td>PP立即执行</td></tr><tr><td>6</td><td>Relative</td><td>PP相对/绝对</td></tr><tr><td>7</td><td>Fault Reset</td><td>故障复位</td></tr><tr><td>8</td><td>Halt</td><td>PP/PV暂停</td></tr><tr><td>9-15</td><td>-</td><td>保留</td></tr></tbody></table><br>
+<h3 id="附录c:-状态字位定义">附录C: 状态字位定义</h3>
+<br>
+<table><thead><tr><th>Bit</th><th>名称</th><th>功能</th></tr></thead><tbody><tr><td>0-5</td><td>State</td><td>状态编码</td></tr><tr><td>3</td><td>Fault</td><td>故障指示</td></tr><tr><td>6</td><td>Switch On Disabled</td><td>-</td></tr><tr><td>7</td><td>Warning</td><td>警告</td></tr><tr><td>9</td><td>Remote</td><td>远程</td></tr><tr><td>10</td><td>Target Reached</td><td>目标完成</td></tr><tr><td>11</td><td>Internal Limit</td><td>内部限制</td></tr><tr><td>12</td><td>Mode Specific</td><td>模式相关位</td></tr><tr><td>13</td><td>Following Error</td><td>跟随误差</td></tr></tbody></table><br>
+<h3 id="附录d:-术语表">附录D: 术语表</h3>
+<br>
+<table><thead><tr><th>术语</th><th>说明</th></tr></thead><tbody><tr><td><strong>EtherCAT</strong></td><td>Ethernet for Control Automation Technology</td></tr><tr><td><strong>CoE</strong></td><td>CAN over EtherCAT</td></tr><tr><td><strong>CiA402</strong></td><td>CAN in Automation 402设备配置标准</td></tr><tr><td><strong>PDO</strong></td><td>Process Data Object，过程数据对象</td></tr><tr><td><strong>SDO</strong></td><td>Service Data Object，服务数据对象</td></tr><tr><td><strong>ESI</strong></td><td>EtherCAT Slave Information，从站信息文件</td></tr><tr><td><strong>DC</strong></td><td>Distributed Clock，分布式时钟</td></tr><tr><td><strong>SM</strong></td><td>Sync Manager，同步管理器</td></tr><tr><td><strong>WcState</strong></td><td>Working Counter State，工作计数器状态</td></tr><tr><td><strong>PDI</strong></td><td>Process Data Interface，过程数据接口</td></tr></tbody></table><br>
+<h3 id="附录e:-快速参考卡">附录E: 快速参考卡</h3>
+<br>
+<p><strong>启动流程</strong>：</p>
+<pre><code class="language-">
+1. 电源上电
+2. EtherCAT进入OP
+3. 控制字: 0x0006 → 0x0007 → 0x000F
+4. 设置模式: 0x6060 = 1/3/8/9
+5. 设置目标: 0x607A 或 0x60FF
+6. 开始运动
+</code></pre>
+<br>
+<p><strong>紧急停止</strong>：</p>
+<pre><code class="language-">
+方法1: 0x6040 = 0x0002 (Quick Stop)
+方法2: 0x6040 = 0x0000 (Disable Voltage)
+方法3: 断开电源（不推荐）
+</code></pre>
+<br>
+<p><strong>常用监控对象</strong>：</p>
+<pre><code class="language-">
+0x6041 - 状态字
+0x6064 - 实际位置
+0x606C - 实际速度
+0x603F - 错误码
+0x6061 - 当前模式
+</code></pre>
+<br>
+<hr>
+<br>
+<h2 id="技术支持">技术支持</h2>
+<br>
+<p>如需技术支持，请联系：</p>
+<br>
+<ul>
+<li>📧 Email: support@example.com</li>
+<li>📞 电话: +86-xxx-xxxx-xxxx</li>
+<li>🌐 网站: www.example.com</li>
+</ul>
+<br>
+<p>提供以下信息以便快速解决问题：</p>
+<ol>
+<li>产品型号和序列号</li>
+<li>固件版本（0x100A）</li>
+<li>故障现象描述</li>
+<li>错误码（0x603F, 0x206C）</li>
+<li>诊断快照（如可能）</li>
+</ol>
+<br>
+<hr>
+<br>
+<h2 id="版本历史">版本历史</h2>
+<br>
+<table><thead><tr><th>版本</th><th>日期</th><th>修改内容</th></tr></thead><tbody><tr><td>V1.0</td><td>2026-10-15</td><td>初始版本</td></tr></tbody></table><br>
+<hr>
+<br>
+<p><strong>声明</strong>：</p>
+<ol>
+<li>本说明书内容基于当前固件版本，功能可能随版本更新而变化</li>
+<li>0x6064/0x606C为内部开环计数，不代表机械位置精度</li>
+<li>本产品不具备功能安全认证，不可用于安全相关应用</li>
+<li>最终解释权归制造商所有</li>
+</ol>
+<br>
+<hr>
+<br>
+<p><em>文档编号: FCM4E1553-UM-V1.0</em>  </p>
+<p><em>© 2026 版权所有</em></p>
+<br>
+
+    <script>
+        // 自动生成目录链接（可选）
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('FCM4E1553 User Manual loaded');
+        });
+    </script>
+</body>
+</html>

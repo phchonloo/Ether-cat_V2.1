@@ -103,6 +103,8 @@ typedef struct
     BOOL firstDcRunning;
     BOOL firstSequenceValid;
     UINT16 firstAlStatusCode; /* Written last: zero means no OP sync failure latched. */
+    /* Extra full PDO read attempts, not Ethernet frame counts. */
+    UINT32 outputRetriggerReadCount;
 } TECAT_SYNC_DIAGNOSTICS;
 
 extern volatile TECAT_SYNC_DIAGNOSTICS gEcatSyncDiag;
@@ -135,7 +137,28 @@ typedef struct
     UINT8 firstDisableValid;
     UINT8 resetLowSeen;
     UINT8 resetRequestPending;
+    /* Diagnostic revision only, not an ESI/PDO or motion-interface change. */
+    UINT32 diagVersion;
+    UINT32 firstOpExitCycle;
+    UINT32 firstOpExitPdoCount;
+    UINT32 firstDisableCycle;
+    UINT32 firstDisablePdoCount;
+    UINT32 maxEnabledPdoGapCycles;
+    UINT32 firstDisableMaxEnabledPdoGapCycles;
+    UINT8 lastAlStateValid;
+    UINT8 lastPdoEnabled;
+    UINT8 lastPdoCycleValid;
+    /* Adjacent successful PDO mapping timestamps, NOT wire arrival times.
+     * Validity excludes startup / disabled DWT; long debug halts still wrap. */
+    UINT32 lastPdoGapCycles;
+    UINT32 firstDisableLastPdoGapCycles;
+    UINT32 firstDisableLastPdoCycle;
+    UINT16 lastPdoControlWord;
+    UINT16 firstDisableLastPdoControlWord;
+    UINT8 lastPdoGapValid;
+    UINT8 firstDisableLastPdoGapValid;
 } TECAT_COMM_DIAGNOSTICS;
+#define ECAT_COMM_DIAG_VERSION 0x20261014UL
 extern volatile TECAT_COMM_DIAGNOSTICS gEcatCommDiag;
 UINT8 ECAT_TryResetPdiFault(void);
 #endif //_ECATAPPL_H_

@@ -8,6 +8,7 @@
 #if EL9800_HW
 #include "qspi.h"
 #include "ecatslv.h"
+#include "exti.h"
 
 #define    _EL9800HW_ 1
 #include "el9800hw.h"
@@ -15,6 +16,7 @@
 /* Sink for legacy LED1/LED3/LED5 PDO writes; the real pins belong to RS485. */
 volatile uint8_t g_rs485_reserved_led_sink;
 volatile uint32_t gEscQspiMaxCriticalCycles = 0U;
+volatile TESC_IRQ_DIAGNOSTICS gEscIrqDiag = {0x20261015UL, 0U, 0U, 0U};
 #undef    _EL9800HW_
 /* ECATCHANGE_START(V5.11) ECAT10*/
 /*remove definition of _EL9800HW_ (#ifdef is used in el9800hw.h)*/
@@ -128,7 +130,12 @@ static void EscQspiLeaveCritical(uint32_t primask)
 #define    INIT_SYNC1_INT                  exti_init_sync1();
 #define    Sync1Isr                        EXTI2_IRQHandler
 #define    DISABLE_SYNC1_INT               NVIC_DisableIRQ(EXTI2_IRQn);
+#if ECAT_SYNC1_IRQ_ENABLED
 #define    ENABLE_SYNC1_INT                NVIC_EnableIRQ(EXTI2_IRQn); 
+#else
+/* HW_Init must not re-enable the board's unconnected SYNC1 interrupt. */
+#define    ENABLE_SYNC1_INT                ((void)0)
+#endif
 #define    ACK_SYNC1_INT                   EXTI_ClrITPendBit(EXTI_LINE2);
 #define    IS_SYNC1_INT_ACTIVE              
 
@@ -688,12 +695,29 @@ UINT8 HW_EscWriteIsr( MEM_ADDR *pData, UINT16 Address, UINT16 Len )
  */
 void  EcatIsr(void)
 {
+   uint32_t startCycles = DWT->CYCCNT;
+   uint32_t measureCycles = DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk;
+
+   /* Clear only the edge that entered this handler. A later falling edge
+    * must remain pending even if the ESC IRQ stays low on return. */
+   ACK_ESC_INT;
+   /* PDI_Isr already rechecks AL events and fully maps at most TWO PDOs.
+    * Keep that total budget per hardware ISR: do not add an outer drain loop
+    * or self-pend continuously while the IRQ line is held low. */
    PDI_Isr();
 
-   /* reset the interrupt flag */
-   ACK_ESC_INT;
-	
-
+   if ((GPIO_ReadInputDataBit(GPIOB, GPIO_PIN_0) == Bit_RESET) &&
+       (gEscIrqDiag.lowAfterServiceCount != UINT32_MAX))
+   {
+      gEscIrqDiag.lowAfterServiceCount++;
+   }
+   if ((measureCycles != 0U) &&
+       ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) != 0U))
+   {
+      uint32_t elapsedCycles = DWT->CYCCNT - startCycles;
+      if (elapsedCycles > gEscIrqDiag.maxServiceCycles)
+         gEscIrqDiag.maxServiceCycles = elapsedCycles;
+   }
 }
 #endif     // AL_EVENT_ENABLED
 
@@ -709,9 +733,10 @@ void  EcatIsr(void)
 void Sync0Isr(void)
 {
    DISABLE_ESC_INT();
+   /* Preserve any SYNC0 edge arriving while Sync0_Isr is executing. */
+   ACK_SYNC0_INT;
    Sync0_Isr();
 
-   ACK_SYNC0_INT;
    ENABLE_ESC_INT();
 }
 /*ECATCHANGE_START(V5.10) HW3*/
@@ -723,16 +748,57 @@ void Sync0Isr(void)
  */
 void Sync1Isr(void)
 {	
+#if ECAT_SYNC1_IRQ_ENABLED
    DISABLE_ESC_INT();
    Sync1_Isr();
 	 ACK_SYNC1_INT;
    ENABLE_ESC_INT();
+#else
+   /* Defensive acknowledgement only; never dispatch an unwired SYNC1. */
+   DISABLE_SYNC1_INT;
+   ACK_SYNC1_INT;
+#endif
 
 }
 /*ECATCHANGE_END(V5.10) HW3*/
 #endif
 
 #if _STM32_IO8 && ECAT_TIMER_INT
+
+#if AL_EVENT_ENABLED
+/* Two consecutive timer observations with no PDI progress, not a promise of
+ * exactly 2 ms. A live/PDO-processing IRQ must not be mistaken for a lost edge.
+ * Only TimerIsr writes these state variables. */
+static uint8_t sEscIrqLowTicks = 0U;
+static uint32_t sEscIrqLastServiceCount = 0U;
+
+static void EscIrqCheckRecovery(void)
+{
+    uint32_t serviceCount = gEcatSyncDiag.pdiIsrCount;
+
+    if ((serviceCount != sEscIrqLastServiceCount) ||
+        ((EXTI->IMASK & EXTI_LINE0) == 0U) ||
+        (GPIO_ReadInputDataBit(GPIOB, GPIO_PIN_0) != Bit_RESET) ||
+        (EXTI_GetITStatus(EXTI_LINE0) != RESET))
+    {
+        sEscIrqLowTicks = 0U;
+    }
+    else
+    {
+        sEscIrqLowTicks++;
+        if (sEscIrqLowTicks >= 2U)
+        {
+            sEscIrqLowTicks = 0U;
+            if (gEscIrqDiag.recoveryRequestCount != UINT32_MAX)
+                gEscIrqDiag.recoveryRequestCount++;
+            /* Request normal IRQ service; never perform SQI/PDO copies here.
+             * This neither clears a PDI fault nor changes AL/drive state. */
+            EXTI_TriggerSWInt(EXTI_LINE0);
+        }
+    }
+    sEscIrqLastServiceCount = serviceCount;
+}
+#endif
 
 /*
  * 描述:  TimerIsr
@@ -744,6 +810,9 @@ void TimerIsr(void)
 {		
     DISABLE_ESC_INT();
 		ECAT_CheckTimer();
+#if AL_EVENT_ENABLED
+    EscIrqCheckRecovery();
+#endif
 		ECAT_TIMER_ACK_INT;
 	  ENABLE_ESC_INT();
 }

@@ -879,6 +879,14 @@
                 </Info>
               </Object>
               <Object>
+                <Index>#x2000</Index>
+                <Name>Motion units (0=rpm, 1=count/s; change resets speed parameters)</Name>
+                <Type>UINT</Type>
+                <BitSize>16</BitSize>
+                <Info><DefaultData>0000</DefaultData></Info>
+                <Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
                 <Index>#x206C</Index>
                 <Name>Vendor fault code</Name>
                 <Type>UINT</Type>
@@ -925,6 +933,7 @@
                 <Name>Quick stop option code</Name>
                 <Type>INT</Type>
                 <BitSize>16</BitSize>
+                <Info><DefaultData>0200</DefaultData></Info>
                 <Flags>
                   <Access>rw</Access>
                 </Flags>
@@ -934,6 +943,7 @@
                 <Name>Shutdown option code</Name>
                 <Type>INT</Type>
                 <BitSize>16</BitSize>
+                <Info><DefaultData>0000</DefaultData></Info>
                 <Flags>
                   <Access>rw</Access>
                 </Flags>
@@ -943,15 +953,25 @@
                 <Name>Disable operation option code</Name>
                 <Type>INT</Type>
                 <BitSize>16</BitSize>
+                <Info><DefaultData>0100</DefaultData></Info>
                 <Flags>
                   <Access>rw</Access>
                 </Flags>
+              </Object>
+              <Object>
+                <Index>#x605D</Index>
+                <Name>Halt option code (1=profile, 2=quick stop)</Name>
+                <Type>INT</Type>
+                <BitSize>16</BitSize>
+                <Info><DefaultData>0100</DefaultData></Info>
+                <Flags><Access>rw</Access></Flags>
               </Object>
               <Object>
                 <Index>#x605E</Index>
                 <Name>Fault reaction option code</Name>
                 <Type>INT</Type>
                 <BitSize>16</BitSize>
+                <Info><DefaultData>0200</DefaultData></Info>
                 <Flags>
                   <Access>rw</Access>
                 </Flags>
@@ -1026,6 +1046,14 @@
                 <BitSize>80</BitSize>
               </Object>
               <Object>
+                <Index>#x607F</Index>
+                <Name>Max profile velocity (units selected by 0x2000)</Name>
+                <Type>UDINT</Type>
+                <BitSize>32</BitSize>
+                <Info><DefaultData>E8030000</DefaultData></Info>
+                <Flags><Access>rw</Access></Flags>
+              </Object>
+              <Object>
                 <Index>#x6081</Index>
                 <Name>Profile velocity</Name>
                 <Type>UDINT</Type>
@@ -1066,10 +1094,18 @@
                 <Name>Quick stop deceleration</Name>
                 <Type>UDINT</Type>
                 <BitSize>32</BitSize>
+                <Info><DefaultData>2C010000</DefaultData></Info>
                 <Flags>
                   <Access>rw</Access>
-                  <PdoMapping>r</PdoMapping>
                 </Flags>
+              </Object>
+              <Object>
+                <Index>#x60B0</Index>
+                <Name>Position offset (CSP, counts)</Name>
+                <Type>DINT</Type>
+                <BitSize>32</BitSize>
+                <Info><DefaultData>00000000</DefaultData></Info>
+                <Flags><Access>rw</Access><PdoMapping>r</PdoMapping></Flags>
               </Object>
               <Object>
                 <Index>#x60C2</Index>

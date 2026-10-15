@@ -194,6 +194,15 @@ ticks = finish_pp(1000)
 check(diag("mismatchCount") == 0, "library PhaseGet contract mismatch")
 print("PASS full firmware PP: 15 holds; 47->63 accepts; exact +1000 (%s ticks)" %
       ticks, flush=True)
+for cycle in range(1024):
+    check(tick() == 0, "held-high PP new-setpoint bit repeated the move")
+    if cycle % 32 == 31:
+        fw.call("EthercatMotorControl_Update")
+    check(diag("countedPosition", True) == 1000, "PP endpoint did not hold")
+check(get("LocalAxes", "Objects", "objModesOfOperationDisplay") == 1,
+      "PP test was not actually in mode 1")
+print("PASS full firmware PP: one finite target holds, no repeat at held controlword 63",
+      flush=True)
 put("LocalAxes", 47, "Objects", "objControlWord")
 fw.call("EthercatMotorControl_Update")
 put("LocalAxes", -1, "Objects", "objTargetPosition")

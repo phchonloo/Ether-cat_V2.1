@@ -73,7 +73,7 @@ function fixture(events = [0, 0]) {
     const par = () => ({ u16SyncType: constants.SYNCTYPE_DCSYNC0,
         u16SmEventMissedCounter: 0, u16CycleExceededCounter: 0, u8SyncError: 0 });
     const ctx = {
-        ...constants, TRUE: 1, FALSE: 0, u16dummy: 0,
+        ...constants, TRUE: 1, FALSE: 0, UINT32_MAX: 0xFFFFFFFF, u16dummy: 0,
         bEscIntEnabled: 1, bDcRunning: 1, bDcSyncActive: 1,
         bEcatOutputUpdateRunning: 1, bEcatInputUpdateRunning: 1,
         bEcatFirstOutputsReceived: 0, bSmSyncSequenceValid: 1,
@@ -146,11 +146,13 @@ test("mailbox entry then first late PDO is serviced", () => {
     assert.equal(c.gEcatSyncDiag.lateOutputEventCount, 1);
     assert.equal(a.syncAck, 0);
 });
-test("true second PDO retains overrun and acknowledgement", () => {
+test("second PDO is fully mapped while retaining the overrun warning", () => {
     const { ctx: c, calls: a } = fixture([O, O]);
     c.PDI_Isr();
-    assert.equal(a.map, 1);
-    assert.deepEqual(a.wordAddresses, [0x1100, 0x110A]);
+    assert.equal(a.map, 2);
+    assert.equal(a.events, 2);
+    assert.deepEqual(a.wordAddresses, []);
+    assert.equal(c.gEcatSyncDiag.outputRetriggerReadCount, 1);
     assert.equal(c.gEcatSyncDiag.outputRetriggerCount, 1);
     assert.equal(c.sSyncManOutPar.u16CycleExceededCounter, 1);
     assert.equal(c.sSyncManInPar.u16CycleExceededCounter, 1);
@@ -159,9 +161,10 @@ test("true second PDO retains overrun and acknowledgement", () => {
 test("late first PDO followed by a second still reports overrun", () => {
     const { ctx: c, calls: a } = fixture([S0, O, O]);
     c.PDI_Isr();
-    assert.equal(a.map, 1);
+    assert.equal(a.map, 2);
     assert.equal(a.events, 3);
-    assert.equal(a.wordAddresses.length, 2);
+    assert.equal(a.wordAddresses.length, 0);
+    assert.equal(c.gEcatSyncDiag.outputRetriggerReadCount, 1);
     assert.equal(c.gEcatSyncDiag.lateOutputEventCount, 1);
     assert.equal(c.gEcatSyncDiag.outputRetriggerCount, 1);
     assert.equal(c.sSyncManOutPar.u16CycleExceededCounter, 1);
@@ -169,10 +172,37 @@ test("late first PDO followed by a second still reports overrun", () => {
 test("cycle counter saturates instead of wrapping to zero", () => {
     const { ctx: c } = fixture([O, O]);
     c.sSyncManOutPar.u16CycleExceededCounter = 0xFFFF;
+    c.gEcatSyncDiag.outputRetriggerCount = 0xFFFFFFFF;
+    c.gEcatSyncDiag.outputRetriggerReadCount = 0xFFFFFFFF;
     c.PDI_Isr();
     assert.equal(c.sSyncManOutPar.u16CycleExceededCounter, 0xFFFF);
     assert.equal(c.sSyncManInPar.u16CycleExceededCounter, 0xFFFF);
     assert.equal(c.sSyncManOutPar.u8SyncError, 1);
+    assert.equal(c.gEcatSyncDiag.outputRetriggerCount, 0xFFFFFFFF);
+    assert.equal(c.gEcatSyncDiag.outputRetriggerReadCount, 0xFFFFFFFF);
+});
+test("burst does not erase two missed-event counts or run DC application twice", () => {
+    const { ctx: c, calls: a } = fixture([O, O | S0]);
+    c.sSyncManOutPar.u16SmEventMissedCounter = 5;
+    c.PDI_Isr();
+    assert.equal(c.sSyncManOutPar.u16SmEventMissedCounter, 4);
+    assert.equal(a.sync0, 1);
+    assert.deepEqual(a.order, ["map", "map", "sync0"]);
+});
+test("SM-sync application receives each fully mapped PDO in a burst", () => {
+    const { ctx: c, calls: a } = fixture([O, O]);
+    c.sSyncManOutPar.u16SyncType = c.SYNCTYPE_SM_SYNCHRON;
+    c.sSyncManInPar.u16SyncType = c.SYNCTYPE_SM2_SYNCHRON;
+    c.PDI_Isr();
+    assert.deepEqual(a.order, ["map", "app", "input", "map", "app", "input"]);
+});
+test("SAFEOP burst acknowledges both events without publishing commands", () => {
+    const { ctx: c, calls: a } = fixture([O, O]);
+    c.bEcatOutputUpdateRunning = 0;
+    c.PDI_Isr();
+    assert.equal(a.map, 0);
+    assert.equal(a.wordAddresses.length, 4);
+    assert.equal(c.gEcatSyncDiag.outputRetriggerReadCount, 0);
 });
 test("missed-event counter does not underflow at zero", () => {
     const { ctx: c } = fixture([O, 0]);

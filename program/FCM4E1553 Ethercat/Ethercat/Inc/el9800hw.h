@@ -64,6 +64,15 @@ V5.01 : Start file change log
  */
 extern volatile uint8_t g_rs485_reserved_led_sink;
 extern volatile uint32_t gEscQspiMaxCriticalCycles;
+/* Port IRQ diagnostics; independent of the PDO/CoE layout. */
+typedef struct
+{
+    uint32_t version;
+    uint32_t lowAfterServiceCount;
+    uint32_t recoveryRequestCount;
+    uint32_t maxServiceCycles;
+} TESC_IRQ_DIAGNOSTICS;
+extern volatile TESC_IRQ_DIAGNOSTICS gEscIrqDiag;
 #undef LED_1
 #undef LED_3
 #undef LED_5

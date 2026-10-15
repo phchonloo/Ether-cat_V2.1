@@ -45,6 +45,10 @@ void EthercatMotorControl_Init(void);
 void EthercatMotorControl_Update(void);
 /* Latch one coherent setpoint after SM RxPDO mapping or on DC Sync0. */
 void EthercatMotorControl_OnSyncCycle(void);
+/* Emitted phase/ramp standstill only; NOT a measured shaft standstill. */
+u8 EthercatMotorControl_IsStopped(void);
+/* Final gate for every PWM write, including writes from the vendor library. */
+u8 EthercatMotorControl_PowerAllowed(void);
 
 /* Fixed-rate ramp and feedback helpers called from the 16 kHz motor ISR. */
 s32 EthercatMotorControl_ApplyRamp(s32 target_base_rpm);

@@ -81,6 +81,100 @@ V4.30 : create file (state machine; handling state transition options; input fee
 ------
 -----------------------------------------------------------------------------------------*/
 TCiA402Axis       LocalAxes[MAX_AXES];
+static UINT16 sPreviousControlWord[MAX_AXES];
+
+/* Validate SDO parameters before publishing. Unsupported stop strategies
+ * (current/voltage-limited braking) must not be acknowledged as implemented. */
+UINT8 WriteMotionParameter(UINT16 index, UINT8 subindex, UINT32 dataSize,
+                           UINT16 MBXMEM *pData, UINT8 bCompleteAccess)
+{
+    CiA402Objects *o = &LocalAxes[0].Objects;
+    UINT32 value;
+    UINT32 minimum = 1U;
+    UINT32 maximum;
+    UINT16 size = ((index == 0x2000U) || (index <= 0x605EU)) ? 2U : 4U;
+    if (bCompleteAccess)
+        return ABORTIDX_COMPLETE_ACCESS_NOT_SUPPORTED;
+    if (subindex != 0U)
+        return ABORTIDX_SUBINDEX_NOT_EXISTING;
+    if (dataSize != size)
+        return ABORTIDX_PARAM_LENGTH_ERROR;
+    value = SWAPWORD(pData[0]);
+    if (size == 4U)
+        value |= (UINT32)SWAPWORD(pData[1]) << 16U;
+    if ((LocalAxes[0].u16PendingOptionCode != 0U) ||
+        (LocalAxes[0].i16State == STATE_QUICK_STOP_ACTIVE))
+        return ABORTIDX_IN_THIS_STATE_DATA_CANNOT_BE_READ_OR_STORED;
+    if (index == 0x2000U)
+    {
+        if (value > 1U)
+            return ABORTIDX_VALUE_EXCEEDED;
+        if (((nAlStatus & STATE_MASK) != STATE_PREOP) ||
+            gEcatMotorEnabled || !EthercatMotorControl_IsStopped())
+            return ABORTIDX_IN_THIS_STATE_DATA_CANNOT_BE_READ_OR_STORED;
+        if (o->objMotionUnits != value)
+        {
+            /* Explicit unit changes reset speed/ramp values to conservative
+             * physical defaults; old raw values must never be reinterpreted. */
+            o->objMotionUnits = (UINT16)value;
+            o->objProfileVelocity = (value == 0U) ? 100U :
+                (UINT32)((unsigned long long)gEcatPulseDiag.resolution * 100U / 60U);
+            o->objMaxProfileVelocity = (value == 0U) ? 1000U :
+                (UINT32)((unsigned long long)gEcatPulseDiag.resolution * 1000U / 60U);
+            o->objProfileAcceleration = (value == 0U) ? 300U :
+                (UINT32)gEcatPulseDiag.resolution * 5U;
+            o->objProfileDeceleration = o->objProfileAcceleration;
+            o->objQuickStopDeclaration = o->objProfileAcceleration;
+            o->objTargetVelocity = 0;
+        }
+        return 0;
+    }
+    if ((index >= 0x605AU) && (index <= 0x605EU))
+    {
+        switch (index)
+        {
+        case 0x605A:
+            if ((value != 0U) && (value != 1U) && (value != 2U) &&
+                (value != 5U) && (value != 6U)) return ABORTIDX_VALUE_EXCEEDED;
+            o->objQuickStopOptionCode = (INT16)value; break;
+        case 0x605B:
+        case 0x605C:
+            if (value > 1U) return ABORTIDX_VALUE_EXCEEDED;
+            if (index == 0x605B) o->objShutdownOptionCode = (INT16)value;
+            else o->objDisableOperationOptionCode = (INT16)value;
+            break;
+        case 0x605D:
+            if ((value != 1U) && (value != 2U)) return ABORTIDX_VALUE_EXCEEDED;
+            o->objHaltOptionCode = (INT16)value; break;
+        case 0x605E:
+            /* Hardware/PDI faults have immediate output priority regardless
+             * of this generic reaction request. No invented current braking. */
+            if (value > 2U) return ABORTIDX_VALUE_EXCEEDED;
+            o->objFaultReactionCode = (INT16)value; break;
+        }
+        return 0;
+    }
+    maximum = ((index == 0x607FU) || (index == 0x6081U)) ?
+        ECAT_MOTOR_MAX_RPM : ECAT_MOTOR_MAX_RAMP_RPM_PER_SEC;
+    if (o->objMotionUnits == 1U)
+    {
+        minimum = ((UINT32)gEcatPulseDiag.resolution + 59U) / 60U;
+        maximum = (UINT32)((unsigned long long)maximum *
+                   (UINT32)gEcatPulseDiag.resolution / 60U);
+    }
+    if ((value < minimum) || (value > maximum))
+        return ABORTIDX_VALUE_EXCEEDED;
+    switch (index)
+    {
+    case 0x607F: o->objMaxProfileVelocity = value; break;
+    case 0x6081: o->objProfileVelocity = value; break;
+    case 0x6083: o->objProfileAcceleration = value; break;
+    case 0x6084: o->objProfileDeceleration = value; break;
+    case 0x6085: o->objQuickStopDeclaration = value; break;
+    default: return ABORTIDX_UNSUPPORTED_ACCESS;
+    }
+    return 0;
+}
 
 /*-----------------------------------------------------------------------------------------
 ------
@@ -281,6 +375,7 @@ UINT16 CiA402_Init(void)
 
         /* 清空轴运行状态，并设置为“未准备好上电”的安全初始状态。 */
         HMEMSET(&LocalAxes[AxisCnt], 0, SIZEOF(TCiA402Axis));
+        sPreviousControlWord[AxisCnt] = 0x0080U; /* require low before reset */
 
         LocalAxes[AxisCnt].bAxisIsActive = FALSE;
         LocalAxes[AxisCnt].bBrakeApplied = TRUE;
@@ -368,6 +463,18 @@ UINT16 CiA402_Init(void)
 
             switch (pDiCEntry->Index)
             {
+                case 0x2000:
+                    pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objMotionUnits;
+                    break;
+                case 0x605D:
+                    pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objHaltOptionCode;
+                    break;
+                case 0x607F:
+                    pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objMaxProfileVelocity;
+                    break;
+                case 0x60B0:
+                    pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.objPositionOffset;
+                    break;
                 case 0x1600:
                     pDiCEntry->pVarPtr = &LocalAxes[AxisCnt].Objects.sRxPDOMap0;
                     break;
@@ -737,7 +844,13 @@ static BOOL CiA402_HandleOperationEnabled(TCiA402Axis *axis,
                          CONTROLWORD_COMMAND_QUICKSTOP_MASK,
                          CONTROLWORD_COMMAND_QUICKSTOP))
     {
-        axis->i16State = STATE_QUICK_STOP_ACTIVE;
+        if (axis->Objects.objQuickStopOptionCode == DISABLE_DRIVE)
+            axis->i16State = STATE_SWITCH_ON_DISABLED;
+        else
+        {
+            axis->i16State = STATE_QUICK_STOP_ACTIVE;
+            axis->u16PendingOptionCode = 0x605AU;
+        }
         return TRUE;
     }
 
@@ -772,17 +885,8 @@ static BOOL CiA402_HandleOperationEnabled(TCiA402Axis *axis,
 static BOOL CiA402_HandleQuickStop(TCiA402Axis *axis,
                                    UINT16 control_word)
 {
-    UINT16 previous_state;
-
-    previous_state = axis->Objects.objStatusWord;
-    previous_state &= STATUSWORD_STATE_MASK;
-
-    if ((axis->Objects.objQuickStopOptionCode != DISABLE_DRIVE) &&
-        (previous_state != STATUSWORD_STATE_QUICKSTOPACTIVE))
-    {
-        axis->u16PendingOptionCode = 0x605AU;
-        return FALSE;
-    }
+    /* Entry into this state already latched the ramp request. Options 5/6
+     * stay stopped until voltage is removed and the enable sequence repeats. */
 
     if (CiA402_CommandIs(
             control_word,
@@ -939,6 +1043,20 @@ static void CiA402_UpdateAxisFlags(TCiA402Axis *axis)
 static void CiA402_WriteStatusWord(TCiA402Axis *axis,
                                    UINT16 status_word)
 {
+    /* Report the current state, not the state that entered this scan. In
+     * particular Quick Stop Active must be visible throughout deceleration. */
+    status_word &= (UINT16)~STATUSWORD_STATE_MASK;
+    switch (axis->i16State)
+    {
+    case STATE_SWITCH_ON_DISABLED: status_word |= STATUSWORD_STATE_SWITCHEDONDISABLED; break;
+    case STATE_READY_TO_SWITCH_ON: status_word |= STATUSWORD_STATE_READYTOSWITCHON; break;
+    case STATE_SWITCHED_ON: status_word |= STATUSWORD_STATE_SWITCHEDON; break;
+    case STATE_OPERATION_ENABLED: status_word |= STATUSWORD_STATE_OPERATIONENABLED; break;
+    case STATE_QUICK_STOP_ACTIVE: status_word |= STATUSWORD_STATE_QUICKSTOPACTIVE; break;
+    case STATE_FAULT_REACTION_ACTIVE: status_word |= STATUSWORD_STATE_FAULTREACTIONACTIVE; break;
+    case STATE_FAULT: status_word |= STATUSWORD_STATE_FAULT; break;
+    default: break;
+    }
     if (axis->bHighLevelPowerApplied == TRUE)
     {
         status_word |= STATUSWORD_VOLTAGE_ENABLED;
@@ -973,6 +1091,7 @@ void CiA402_StateMachine(void)
     UINT16 status_word;
     UINT16 control_word;
     UINT16 axis_index;
+    BOOL reset_edge;
 
     for (axis_index = 0U;
          axis_index < MAX_AXES;
@@ -983,31 +1102,41 @@ void CiA402_StateMachine(void)
         {
             continue;
         }
+        control_word = axis->Objects.objControlWord;
+        reset_edge = ((control_word & 0x0080U) != 0U) &&
+                     ((sPreviousControlWord[axis_index] & 0x0080U) == 0U);
+        sPreviousControlWord[axis_index] = control_word;
 
+        /* Voltage removal and faults must interrupt a pending ramp; otherwise
+         * the old early return could ignore controlword 0 until it completed. */
+        if ((axis->u16PendingOptionCode != 0U) &&
+            ((axis->Objects.objControlWord & 0x0002U) == 0U) &&
+            (axis->i16State != STATE_FAULT_REACTION_ACTIVE) &&
+            (axis->i16State != STATE_FAULT))
+        {
+            axis->u16PendingOptionCode = 0U;
+            axis->i16State = STATE_SWITCH_ON_DISABLED;
+        }
+        if ((axis->i16State == STATE_FAULT_REACTION_ACTIVE) &&
+            (axis->u16PendingOptionCode != 0x605EU))
+            axis->u16PendingOptionCode = 0U;
         if (axis->u16PendingOptionCode != 0U)
         {
-            return;
+            CiA402_UpdateAxisFlags(axis);
+            CiA402_WriteStatusWord(axis, axis->Objects.objStatusWord);
+            continue;
         }
 
-        /* OP快捷处理：跳过无真实硬件动作的前两个启动状态。 */
-        if ((axis->i16State < STATE_READY_TO_SWITCH_ON) &&
-            (nAlStatus == STATE_OP))
-        {
-            axis->i16State = STATE_READY_TO_SWITCH_ON;
-        }
+        /* OP alone does not energize/advance the drive: 0x0006 is required. */
 
         status_word = axis->Objects.objStatusWord;
         status_word &= ~(STATUSWORD_STATE_MASK |
                          STATUSWORD_REMOTE);
-        control_word = axis->Objects.objControlWord;
+        if ((axis->i16State == STATE_FAULT) && !reset_edge)
+            control_word &= (UINT16)~0x0080U;
 
         /* 根据本轮进入函数时的状态解释控制字并切换内部状态。 */
-        if (!CiA402_ProcessState(axis,
-                                 control_word,
-                                 &status_word))
-        {
-            return;
-        }
+        (void)CiA402_ProcessState(axis, control_word, &status_word);
 
         /* 使用切换后的状态更新软件使能标志，再写回0x6041。 */
         CiA402_UpdateAxisFlags(axis);
@@ -1031,6 +1160,10 @@ void CiA402_LocalError(UINT16 ErrorCode)
     {
         if(LocalAxes[counter].bAxisIsActive)
         {
+            /* Cancel an older stop before publishing fault state, so a
+             * higher-priority application cycle cannot finish the old stop
+             * and overwrite the new fault with Switch On Disabled. */
+            LocalAxes[counter].u16PendingOptionCode = 0U;
             LocalAxes[counter].i16State = STATE_FAULT_REACTION_ACTIVE;
             LocalAxes[counter].Objects.objErrorCode = ErrorCode;
         }
@@ -1048,18 +1181,12 @@ void CiA402_LocalError(UINT16 ErrorCode)
 BOOL CiA402_TransitionAction(INT16 characteristic,
                             TCiA402Axis *axis)
 {
-    /*
-     * 当前只是SSC示例停机动作：把速度反馈直接写0并立即报告完成。
-     * 移植电机算法后，应在这里连接真实减速或故障停机完成条件。
-     */
+    (void)axis;
     switch (characteristic)
     {
     case SLOW_DOWN_RAMP:
     case QUICKSTOP_RAMP:
-    case STOP_ON_CURRENT_LIMIT:
-    case STOP_ON_VOLTAGE_LIMIT:
-        axis->Objects.objVelocityActualValue = 0;
-        return TRUE;
+        return EthercatMotorControl_IsStopped() ? TRUE : FALSE;
 
     default:
         break;
@@ -1628,8 +1755,8 @@ UINT16 APPL_GenerateMapping(UINT16* pInputSize,UINT16* pOutputSize)
                 LocalAxes[PDOAssignEntryCnt].Objects.objSupportedDriveModes = 0x81;
                 break;
             case 2:
-                /* Velocity-oriented PDO: PV, HM and CSV. */
-                LocalAxes[PDOAssignEntryCnt].Objects.objSupportedDriveModes= 0x124;
+                /* Velocity-oriented PDO: PV and CSV; no wired homing inputs. */
+                LocalAxes[PDOAssignEntryCnt].Objects.objSupportedDriveModes= 0x104;
                 break;
             default:
                 return ALSTATUSCODE_INVALIDOUTPUTMAPPING;
