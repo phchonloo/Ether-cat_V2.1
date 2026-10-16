@@ -1,0 +1,69 @@
+{
+  "input": "C:\\Users\\pc\\Desktop\\\u6e90\u4ee3\u7801.docx",
+  "fonts_by_char_count": {
+    "\u5b8b\u4f53": 113658
+  },
+  "direct_run_formatting_runs": 24167,
+  "direct_paragraph_formatting_paragraphs": 3758,
+  "heading_like_paragraphs_not_heading_style": [],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "/*",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "text": "\u00a0* serial_comm.c \u2014 cross-platform serial port",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "text": "\u00a0*/",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "text": "#include \"serial_comm.h\"",
+        "style": "Normal"
+      },
+      {
+        "para_index": 5,
+        "text": "#include <stdio.h>",
+        "style": "Normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 1,
+        "run_text": "/*",
+        "style": "Normal"
+      },
+      {
+        "para_index": 2,
+        "run_text": "\u00a0* serial_comm.c \u2014 cross-platform serial port",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "run_text": "\u00a0*/",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "run_text": "#include",
+        "style": "Normal"
+      },
+      {
+        "para_index": 4,
+        "run_text": " ",
+        "style": "Normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}

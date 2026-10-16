@@ -1,0 +1,1430 @@
+{
+  "reference": "C:\\Users\\pc\\Desktop\\组态屏软著\\使用说明书.docx",
+  "sha256": "ebc9c449ce989470c6f13c0d9a2ff1e14418244a04529993d8844430f648e87c",
+  "size": 2031472,
+  "rendered_pages": 22,
+  "sections": 1,
+  "paragraph_count": 223,
+  "table_count": 5,
+  "inline_shapes": 11,
+  "style_details": {
+    "Normal": {
+      "font": {
+        "name": "Arial",
+        "east_asia": "微软雅黑",
+        "size_pt": 10.5,
+        "bold": null,
+        "italic": null,
+        "color": null
+      },
+      "alignment": null,
+      "space_before_pt": null,
+      "space_after_pt": 4.0,
+      "line_spacing": 1.4,
+      "left_indent_pt": null,
+      "first_line_indent_pt": null,
+      "keep_with_next": null,
+      "page_break_before": null
+    },
+    "Title": {
+      "font": {
+        "name": null,
+        "east_asia": null,
+        "size_pt": 26.0,
+        "bold": null,
+        "italic": null,
+        "color": "17375E"
+      },
+      "alignment": null,
+      "space_before_pt": null,
+      "space_after_pt": 15.0,
+      "line_spacing": 1.0,
+      "left_indent_pt": null,
+      "first_line_indent_pt": null,
+      "keep_with_next": null,
+      "page_break_before": null
+    },
+    "Subtitle": {
+      "font": {
+        "name": null,
+        "east_asia": null,
+        "size_pt": 12.0,
+        "bold": null,
+        "italic": true,
+        "color": "4F81BD"
+      },
+      "alignment": null,
+      "space_before_pt": null,
+      "space_after_pt": null,
+      "line_spacing": null,
+      "left_indent_pt": null,
+      "first_line_indent_pt": null,
+      "keep_with_next": null,
+      "page_break_before": null
+    },
+    "Heading 1": {
+      "font": {
+        "name": null,
+        "east_asia": null,
+        "size_pt": 18.0,
+        "bold": true,
+        "italic": null,
+        "color": "1F3864"
+      },
+      "alignment": null,
+      "space_before_pt": 12.0,
+      "space_after_pt": 6.0,
+      "line_spacing": null,
+      "left_indent_pt": null,
+      "first_line_indent_pt": null,
+      "keep_with_next": true,
+      "page_break_before": null
+    },
+    "Heading 2": {
+      "font": {
+        "name": null,
+        "east_asia": null,
+        "size_pt": 14.0,
+        "bold": true,
+        "italic": null,
+        "color": "2E5395"
+      },
+      "alignment": null,
+      "space_before_pt": 12.0,
+      "space_after_pt": 6.0,
+      "line_spacing": null,
+      "left_indent_pt": null,
+      "first_line_indent_pt": null,
+      "keep_with_next": true,
+      "page_break_before": null
+    },
+    "Heading 3": {
+      "font": {
+        "name": null,
+        "east_asia": null,
+        "size_pt": 12.0,
+        "bold": true,
+        "italic": null,
+        "color": "2E5395"
+      },
+      "alignment": null,
+      "space_before_pt": 8.0,
+      "space_after_pt": 6.0,
+      "line_spacing": null,
+      "left_indent_pt": null,
+      "first_line_indent_pt": null,
+      "keep_with_next": true,
+      "page_break_before": null
+    },
+    "Caption": {
+      "font": {
+        "name": null,
+        "east_asia": null,
+        "size_pt": 9.0,
+        "bold": true,
+        "italic": null,
+        "color": "4F81BD"
+      },
+      "alignment": null,
+      "space_before_pt": null,
+      "space_after_pt": null,
+      "line_spacing": 1.0,
+      "left_indent_pt": null,
+      "first_line_indent_pt": null,
+      "keep_with_next": null,
+      "page_break_before": null
+    }
+  },
+  "section_details": [
+    {
+      "page_width_pt": 595.3,
+      "page_height_pt": 841.9,
+      "top_margin_pt": 62.35,
+      "bottom_margin_pt": 62.35,
+      "left_margin_pt": 70.85,
+      "right_margin_pt": 70.85,
+      "header_distance_pt": 36.0,
+      "footer_distance_pt": 36.0,
+      "header": [
+        {
+          "style": "Header",
+          "text": "步进电机驱动器调试触摸屏上位机  使用说明书"
+        }
+      ],
+      "footer": [
+        {
+          "style": "Footer",
+          "text": ""
+        }
+      ]
+    }
+  ],
+  "contacts": [
+    "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\tmp\\manual_reference\\contact-01-06.png",
+    "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\tmp\\manual_reference\\contact-07-12.png",
+    "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\tmp\\manual_reference\\contact-13-18.png",
+    "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\tmp\\manual_reference\\contact-19-22.png"
+  ],
+  "paragraphs": [
+    {
+      "index": 4,
+      "style": "Normal",
+      "text": "工业驱动调试组态屏"
+    },
+    {
+      "index": 5,
+      "style": "Normal",
+      "text": "使用说明书"
+    },
+    {
+      "index": 8,
+      "style": "Normal",
+      "text": "操作本设备前请先仔细阅读本手册并妥善保存以备将来查阅"
+    },
+    {
+      "index": 13,
+      "style": "Normal",
+      "text": "深圳星火自动化科技有限公司"
+    },
+    {
+      "index": 14,
+      "style": "Normal",
+      "text": "版本 V1.0.0"
+    },
+    {
+      "index": 16,
+      "style": "Heading 1",
+      "text": "前言"
+    },
+    {
+      "index": 17,
+      "style": "Normal",
+      "text": "感谢您选用本工业驱动调试组态屏。本产品是一款基于 ArtInChip D133CBV（RISC-V）平台的工业组态触摸屏，运行 RT-Thread 实时操作系统，搭配 7 寸彩色电容触摸屏，面向PLC/步进电机驱动器的参数调试与远程运维场景。"
+    },
+    {
+      "index": 18,
+      "style": "Normal",
+      "text": "本使用手册详细介绍了设备的硬件接口、通讯方式、参数读写、远程升级、RTC 校时、授权激活及固件烧录等使用方法。在使用本产品之前，请务必熟读本手册，以便能够正确、安全地使用设备。本手册中介绍了 RS485 串口通讯（Modbus RTU）、以太网通讯（Modbus TCP，注意：通道走的是TCP/IP协议，数据帧还是Modbus RTU）、WiFi 远程 OTA 升级等功能的操作步骤与注意事项。"
+    },
+    {
+      "index": 19,
+      "style": "Heading 1",
+      "text": "安全注意事项"
+    },
+    {
+      "index": 20,
+      "style": "Normal",
+      "text": "在安装、接线、运行、维护、检查之前，请务必熟读本手册及其附属文件，以便正确加以使用。对有关设备的情况、安全信息及其注意事项均熟练掌握之后再加以使用。"
+    },
+    {
+      "index": 21,
+      "style": "Normal",
+      "text": "升级过程中严禁断电，固件写入过程中断电可能导致设备无法启动，需返厂维修。接线前确认驱动器已断电，RS485 通讯线与动力线分开走线，避免干扰。"
+    },
+    {
+      "index": 23,
+      "style": "Heading 1",
+      "text": "目  录"
+    },
+    {
+      "index": 24,
+      "style": "Normal",
+      "text": "前言"
+    },
+    {
+      "index": 25,
+      "style": "Normal",
+      "text": "安全注意事项"
+    },
+    {
+      "index": 26,
+      "style": "Normal",
+      "text": "目录"
+    },
+    {
+      "index": 27,
+      "style": "Normal",
+      "text": "一、产品概述"
+    },
+    {
+      "index": 28,
+      "style": "Normal",
+      "text": "二、硬件接口与面板"
+    },
+    {
+      "index": 29,
+      "style": "Normal",
+      "text": "三、通讯方式"
+    },
+    {
+      "index": 30,
+      "style": "Normal",
+      "text": "四、参数读写操作"
+    },
+    {
+      "index": 31,
+      "style": "Normal",
+      "text": "五、通讯日志"
+    },
+    {
+      "index": 32,
+      "style": "Normal",
+      "text": "六、远程程序升级(OTA)"
+    },
+    {
+      "index": 33,
+      "style": "Normal",
+      "text": "七、RTC 实时时钟"
+    },
+    {
+      "index": 34,
+      "style": "Normal",
+      "text": "八、授权码激活"
+    },
+    {
+      "index": 35,
+      "style": "Normal",
+      "text": "九、状态指示说明"
+    },
+    {
+      "index": 36,
+      "style": "Normal",
+      "text": "十、常见问题排查"
+    },
+    {
+      "index": 37,
+      "style": "Normal",
+      "text": "十一、USB 固件烧录"
+    },
+    {
+      "index": 38,
+      "style": "Normal",
+      "text": "十二、规格参数"
+    },
+    {
+      "index": 39,
+      "style": "Normal",
+      "text": "附录 Modbus 寄存器速查"
+    },
+    {
+      "index": 41,
+      "style": "Heading 1",
+      "text": "一、产品概述"
+    },
+    {
+      "index": 42,
+      "style": "Normal",
+      "text": "本产品是一款基于触摸屏的PLC/步进电机驱动器调试与远程运维终端，用于通过现场通讯对驱动器进行参数读写、运行状态监控，以及通过无线网络进行远程程序升级。设备采用 7 寸彩色电容触摸屏，中文操作界面，支持两种通讯方式与驱动器连接："
+    },
+    {
+      "index": 43,
+      "style": "Normal",
+      "text": "• RS485 串口通讯"
+    },
+    {
+      "index": 44,
+      "style": "Normal",
+      "text": "• 以太网通讯"
+    },
+    {
+      "index": 45,
+      "style": "Normal",
+      "text": "同时内置 WiFi 模块，可连接 OneNET 云平台，实现固件的远程在线升级（OTA）。设备内置 RTC 实时时钟，断电不丢失时间；支持离线授权码激活，实现设备绑定与试用管理。"
+    },
+    {
+      "index": 46,
+      "style": "Heading 3",
+      "text": "适用场景"
+    },
+    {
+      "index": 47,
+      "style": "Normal",
+      "text": "• PLC/步进电机驱动器的出厂调试与参数标定"
+    },
+    {
+      "index": 48,
+      "style": "Normal",
+      "text": "• 现场安装时的参数配置与状态检查"
+    },
+    {
+      "index": 49,
+      "style": "Normal",
+      "text": "• 设备投运后的远程程序更新"
+    },
+    {
+      "index": 50,
+      "style": "Normal",
+      "text": "• 需要时间戳记录与授权管理的工业运维场景"
+    },
+    {
+      "index": 51,
+      "style": "Heading 3",
+      "text": "主要功能"
+    },
+    {
+      "index": 52,
+      "style": "Normal",
+      "text": "1. RS485通讯：支持 0x03/0x06/0x10 等功能码，内置 CRC16 校验，配置为 4800-8N1，RS485 自动收发切换。"
+    },
+    {
+      "index": 53,
+      "style": "Normal",
+      "text": "2. 以太网 通讯：复用 Modbus 帧格式，支持 Server/Client 双模式，静态 IP 192.168.1.2，端口 8080。"
+    },
+    {
+      "index": 54,
+      "style": "Normal",
+      "text": "3. WiFi 远程 OTA 升级：基于 OneNET 云平台 HTTP REST 接口，实现固件检查、分块下载、A/B 分区写入与重启。"
+    },
+    {
+      "index": 55,
+      "style": "Normal",
+      "text": "4. RTC 实时时钟与 NTP 校时：网络就绪后自动向 NTP 服务器校时并写入硬件 RTC。"
+    },
+    {
+      "index": 56,
+      "style": "Normal",
+      "text": "5. 离线授权码激活：采用 HMAC-SHA256 签名的设备绑定授权，支持 30 天试用码。"
+    },
+    {
+      "index": 57,
+      "style": "Heading 1",
+      "text": "二、硬件接口与面板"
+    },
+    {
+      "index": 58,
+      "style": "Normal",
+      "text": "本设备采用标准导轨/嵌入式安装，面板上设有电源通讯端子、以太网口、USB 烧录口、板载 UBOOT/RESET 按键及状态指示灯。"
+    },
+    {
+      "index": 60,
+      "style": "Heading 3",
+      "text": "2.1 电源与 RS485 通讯端子"
+    },
+    {
+      "index": 61,
+      "style": "Normal",
+      "text": "RS485 通讯端子，定义如下："
+    },
+    {
+      "index": 62,
+      "style": "Heading 3",
+      "text": "2.2 以太网接口"
+    },
+    {
+      "index": 63,
+      "style": "Normal",
+      "text": "设备提供一路 RJ45 以太网口，基于 RTL8201F PHY（RMII），默认静态 IP 192.168.1.2，可作为 Modbus TCP Server（监听 8080 端口）或 Client 主动连接上位机。"
+    },
+    {
+      "index": 64,
+      "style": "Heading 3",
+      "text": "2.3 USB 烧录口"
+    },
+    {
+      "index": 65,
+      "style": "Normal",
+      "text": "USB Type-C 接口，用于连接 PC 端 AiBurn 烧录工具进行固件烧录，详见第十一章。"
+    },
+    {
+      "index": 66,
+      "style": "Heading 3",
+      "text": "2.4 按键与指示灯"
+    },
+    {
+      "index": 67,
+      "style": "Normal",
+      "text": "• UBOOT 键：进入烧录模式"
+    },
+    {
+      "index": 68,
+      "style": "Normal",
+      "text": "• RESET 键：系统复位"
+    },
+    {
+      "index": 69,
+      "style": "Normal",
+      "text": "• 电源灯：上电常亮"
+    },
+    {
+      "index": 72,
+      "style": "Normal",
+      "text": "三、通讯方式"
+    },
+    {
+      "index": 73,
+      "style": "Normal",
+      "text": "本设备支持 RS485与以太网两种通讯方式，可在主屏\"通信方式\"下拉框中在线切换。切换时自动断开当前链路并重置状态。"
+    },
+    {
+      "index": 74,
+      "style": "Heading 3",
+      "text": "3.1 选择通讯方式"
+    },
+    {
+      "index": 75,
+      "style": "Normal",
+      "text": "开机后进入主界面，在\"通信方式\"下拉框中选择："
+    },
+    {
+      "index": 76,
+      "style": "Normal",
+      "text": "• Modbus TCP（以太网）——走 RJ45 以太网口"
+    },
+    {
+      "index": 77,
+      "style": "Normal",
+      "text": "• RS485（串口）——走 RS485 端子"
+    },
+    {
+      "index": 79,
+      "style": "Heading 3",
+      "text": "3.2 RS485 串口连接（选 RS485 时）"
+    },
+    {
+      "index": 80,
+      "style": "Normal",
+      "text": "1. 将驱动器 RS485 的 A/B 对应接到设备端子 A/B。"
+    },
+    {
+      "index": 81,
+      "style": "Normal",
+      "text": "2. 在主屏设置从机地址（默认 1）、波特率 4800、8 数据位、无校验、1 停止位。"
+    },
+    {
+      "index": 82,
+      "style": "Normal",
+      "text": "3. 点击\"打开串口\"开关，设备自动发送探测帧（0x03 读保持寄存器 0x00），最多重试 5 次；探测成功后状态栏显示\"连接成功\"。"
+    },
+    {
+      "index": 84,
+      "style": "Heading 3",
+      "text": "3.3 以太网连接（选 Modbus TCP 时）"
+    },
+    {
+      "index": 85,
+      "style": "Normal",
+      "text": "• Server 模式：设备监听 8080 端口，等待上位机作为 Client 连接。"
+    },
+    {
+      "index": 86,
+      "style": "Normal",
+      "text": "• Client 模式：设备主动连接上位机 IP 与端口。"
+    },
+    {
+      "index": 87,
+      "style": "Normal",
+      "text": "在主屏输入目标 IP 与端口后点击\"启动\"，设备进入连接/监听状态，连接成功后状态栏显示\"连接成功\"。"
+    },
+    {
+      "index": 89,
+      "style": "Heading 3",
+      "text": "3.4 设备在线探测"
+    },
+    {
+      "index": 90,
+      "style": "Normal",
+      "text": "无论哪种方式，建立链路后设备均会自动探测驱动器是否在线。探测失败时会显示设备未响应，请检查接线、从机地址、波特率或 IP 设置。"
+    },
+    {
+      "index": 93,
+      "style": "Normal",
+      "text": "四、参数读写操作"
+    },
+    {
+      "index": 94,
+      "style": "Normal",
+      "text": "设备支持对 SP00–SP18 共 19 项参数进行单项读/写与一键读/写。每行参数包含：参数名称、当前值输入框、单独的\"写\"和\"读\"按钮。"
+    },
+    {
+      "index": 96,
+      "style": "Heading 3",
+      "text": "4.1 单项参数读取"
+    },
+    {
+      "index": 97,
+      "style": "Normal",
+      "text": "1. 确认状态栏显示\"连接成功\"。"
+    },
+    {
+      "index": 98,
+      "style": "Normal",
+      "text": "2. 点击对应参数行的\"读\"按钮。"
+    },
+    {
+      "index": 99,
+      "style": "Normal",
+      "text": "3. 设备向驱动器发送读取指令，驱动器返回值后自动填入输入框，同时报文显示在\"接收\"日志区。"
+    },
+    {
+      "index": 100,
+      "style": "Normal",
+      "text": "4. 若长时间无返回（约 0.3 秒），日志区显示 timeout。"
+    },
+    {
+      "index": 101,
+      "style": "Heading 3",
+      "text": "4.2 单项参数写入"
+    },
+    {
+      "index": 102,
+      "style": "Normal",
+      "text": "1. 确认状态栏显示\"连接成功\"。"
+    },
+    {
+      "index": 103,
+      "style": "Normal",
+      "text": "2. 在对应参数行的输入框中输入目标数值。"
+    },
+    {
+      "index": 104,
+      "style": "Normal",
+      "text": "3. 点击该行的\"写\"按钮。"
+    },
+    {
+      "index": 105,
+      "style": "Normal",
+      "text": "4. 设备将数值下发至驱动器，发送报文显示在\"发送\"日志区。"
+    },
+    {
+      "index": 106,
+      "style": "Normal",
+      "text": "5. 写入后建议点击\"读\"按钮回读，确认写入成功。"
+    },
+    {
+      "index": 107,
+      "style": "Heading 3",
+      "text": "4.3 一键读出全部参数"
+    },
+    {
+      "index": 108,
+      "style": "Normal",
+      "text": "点击底部\"一键读出\"按钮，设备依次读取 SP00–SP18 全部 19 项参数，并逐项填入对应输入框。读取过程中每项之间有自动间隔，请勿中途断电或断开通讯。"
+    },
+    {
+      "index": 109,
+      "style": "Heading 3",
+      "text": "4.4 一键写入全部参数"
+    },
+    {
+      "index": 110,
+      "style": "Normal",
+      "text": "点击底部\"一键写入\"按钮，设备将当前输入框中的全部数值依次下发至驱动器。"
+    },
+    {
+      "index": 111,
+      "style": "Normal",
+      "text": "⚠ 警告：一键写入会批量修改驱动器参数，请确认各项数值正确后再执行，错误的参数可能导致电机运行异常。"
+    },
+    {
+      "index": 112,
+      "style": "Heading 3",
+      "text": "4.5 数值输入方法"
+    },
+    {
+      "index": 113,
+      "style": "Normal",
+      "text": "点击任一参数输入框，屏幕自动弹出数字键盘。输入完成后点击键盘上的\"确认（对勾）\"按钮关闭键盘并生效。\"发送\"与\"接收\"两个日志框为只读，仅用于显示通讯报文。"
+    },
+    {
+      "index": 114,
+      "style": "Heading 3",
+      "text": "4.6 是否标准（设备兼容性）"
+    },
+    {
+      "index": 115,
+      "style": "Normal",
+      "text": "第二屏提供\"是否标准\"选项，用于适配不同厂家的驱动器："
+    },
+    {
+      "index": 116,
+      "style": "Normal",
+      "text": "• 标准：采用标准 Modbus 寄存器地址与校验方式。"
+    },
+    {
+      "index": 117,
+      "style": "Normal",
+      "text": "• 非标准：响应帧多回显 1 字节地址，解析时取值偏移不同；若读取数值异常或频繁超时，可切换此项后重新连接。"
+    },
+    {
+      "index": 119,
+      "style": "Heading 3",
+      "text": "4.7涵盖了Modbus全部常用的功能码"
+    },
+    {
+      "index": 120,
+      "style": "Normal",
+      "text": "提供了精确的Modbus数据帧发送界面，用户可以手动发送任意功能码对任意地址进行数据读写。这样就可以实现对不同厂家的设备进行调试。"
+    },
+    {
+      "index": 123,
+      "style": "Heading 3",
+      "text": "4.8 IO调试界面"
+    },
+    {
+      "index": 124,
+      "style": "Normal",
+      "text": "提供了一定数量的输出IO口的读写和输入IO口的只读界面，方面用户观察和测试，用户只需在对应的文本框内输入起始地址即可。用户在主界面的设备下拉框选择IO探测建立连接后，可以在IO诊断界面中查看一些通信状态和对输入输出口进行诊断（详细见图）。单点诊断可以对所有提供的IO口进行测试，联动诊断的功能是在选择的输入口导通的情况下，期望输出口和设置的期望状态相同则测试成功了，批量自检则是直接批量检查提供的20个输出口。"
+    },
+    {
+      "index": 127,
+      "style": "Heading 1",
+      "text": "五、通讯日志"
+    },
+    {
+      "index": 128,
+      "style": "Normal",
+      "text": "主屏底部\"发送\"和\"接收\"两个区域实时显示通讯报文的十六进制内容，格式示例："
+    },
+    {
+      "index": 129,
+      "style": "Normal",
+      "text": "发送：01 03 00 00 00 01 xx xx"
+    },
+    {
+      "index": 130,
+      "style": "Normal",
+      "text": "接收：01 03 02 xx xx xx xx（非标准设备：01 03 03 xx xx xx xx）"
+    },
+    {
+      "index": 131,
+      "style": "Normal",
+      "text": "其中：第 1 字节为从机地址；第 2 字节为功能码（03 读取，06 写单个，10 写多个）；后续为寄存器地址、数据与校验码。出现 timeout 表示指令发出后未收到响应，请检查接线、从机地址、波特率或 IP 设置。"
+    },
+    {
+      "index": 134,
+      "style": "Heading 1",
+      "text": "六、远程程序升级(OTA)"
+    },
+    {
+      "index": 135,
+      "style": "Normal",
+      "text": "本设备内置 WiFi 模块，其主要作用是连接互联网，实现设备的远程固件升级（OTA）。WiFi 不参与日常的参数调试通讯，现场调试仍以 RS485 或以太网为主。"
+    },
+    {
+      "index": 136,
+      "style": "Heading 3",
+      "text": "6.1 WiFi 作用说明"
+    },
+    {
+      "index": 137,
+      "style": "Normal",
+      "text": "• 远程升级：连接互联网，访问中国移动 OneNET 云平台，查询与下载最新固件。"
+    },
+    {
+      "index": 138,
+      "style": "Normal",
+      "text": "• 按需启用：仅在 OTA 升级流程中启用，日常运行时可关闭以降低功耗与干扰。"
+    },
+    {
+      "index": 139,
+      "style": "Normal",
+      "text": "• 联网配置：需通过串口调试工具配置（连接路由器的名称与密码），配置后保持记忆。"
+    },
+    {
+      "index": 140,
+      "style": "Normal",
+      "text": "• 与以太网关系：WiFi 与以太网各自独立，可同时存在；OTA 下载优先走 WiFi 通道。"
+    },
+    {
+      "index": 141,
+      "style": "Heading 3",
+      "text": "6.2 升级前提"
+    },
+    {
+      "index": 142,
+      "style": "Normal",
+      "text": "1. 通过串口调试工具依次发送 wifi -d mode sta wlan0、wifi scan、wifi join SSID PASSWORD，让设备连接到可访问互联网的路由器。"
+    },
+    {
+      "index": 143,
+      "style": "Normal",
+      "text": "2. 设备已在 OneNET 平台注册并绑定到对应产品与设备 ID。"
+    },
+    {
+      "index": 144,
+      "style": "Normal",
+      "text": "3. 云平台上已上传新版本固件。"
+    },
+    {
+      "index": 145,
+      "style": "Heading 3",
+      "text": "6.3 升级操作步骤"
+    },
+    {
+      "index": 146,
+      "style": "Normal",
+      "text": "1. 在主屏点击\"更新升级\"按钮。"
+    },
+    {
+      "index": 147,
+      "style": "Normal",
+      "text": "2. 屏幕弹出\"正在检查更新...\"提示，设备向云平台查询是否有新固件。"
+    },
+    {
+      "index": 148,
+      "style": "Normal",
+      "text": "3. 查询结果："
+    },
+    {
+      "index": 149,
+      "style": "Normal",
+      "text": "• 已是最新版本：提示\"当前已是最新版本\"，无需操作。"
+    },
+    {
+      "index": 150,
+      "style": "Normal",
+      "text": "• 发现新固件：弹出升级确认框，显示当前版本、新版本号与固件大小，提供\"立即升级\"与\"稍后\"两个按钮。"
+    },
+    {
+      "index": 151,
+      "style": "Normal",
+      "text": "• 连接失败：提示\"无法连接升级服务器\"，请检查 WiFi 与网络后重试。"
+    },
+    {
+      "index": 152,
+      "style": "Normal",
+      "text": "4. 点击\"立即升级\"，进入下载进度界面，屏幕显示：固件下载百分比进度条、当前状态文字（如\"正在准备下载\"\"正在升级固件\"\"正在检查固件\"）、\"取消\"按钮。"
+    },
+    {
+      "index": 153,
+      "style": "Normal",
+      "text": "5. 下载完成后，设备自动校验固件并切换启动分区，随后自动重启进入新版本。"
+    },
+    {
+      "index": 155,
+      "style": "Heading 3",
+      "text": "6.4 升级注意事项"
+    },
+    {
+      "index": 156,
+      "style": "Normal",
+      "text": "⚠ 升级期间严禁断电。固件写入过程中断电可能导致设备无法启动，需返厂维修。"
+    },
+    {
+      "index": 157,
+      "style": "Normal",
+      "text": "下载与安装过程约需 1–3 分钟（取决于固件大小与网络状况），请耐心等待，期间不要操作触摸屏。"
+    },
+    {
+      "index": 158,
+      "style": "Normal",
+      "text": "进度达到\"正在检查固件\"阶段后，屏幕会短暂冻结，属正常现象（系统正在写入启动配置，此时不允许屏幕刷新，以免冲突）。"
+    },
+    {
+      "index": 159,
+      "style": "Normal",
+      "text": "升级成功后设备会自动重启，重启完成后即为新版本，无需手动干预。"
+    },
+    {
+      "index": 160,
+      "style": "Normal",
+      "text": "若升级过程中断网络或断电，可重新点击\"更新升级\"再次尝试；设备会从另一份备用系统启动，不会变砖。"
+    },
+    {
+      "index": 163,
+      "style": "Normal",
+      "text": "七、RTC 实时时钟"
+    },
+    {
+      "index": 164,
+      "style": "Normal",
+      "text": "设备内置硬件 RTC（实时时钟），断电后由后备电源维持走时，时间不丢失。开机后登录界面顶部显示当前 RTC 时间。"
+    },
+    {
+      "index": 165,
+      "style": "Heading 3",
+      "text": "7.1 NTP 自动校时"
+    },
+    {
+      "index": 166,
+      "style": "Normal",
+      "text": "当设备通过网络（WiFi 或以太网）接入互联网后，后台线程会自动向以下 NTP 服务器发起校时请求：ntp.aliyun.com、ntp.tencent.com、cn.pool.ntp.org、time.windows.com。校时成功后，标准网络时间会被写入硬件 RTC，并按北京时间（UTC+8）显示。"
+    },
+    {
+      "index": 167,
+      "style": "Heading 3",
+      "text": "7.2 时间有效性"
+    },
+    {
+      "index": 168,
+      "style": "Normal",
+      "text": "设备启动时会检查 RTC 时间是否有效（年份≥2024）。若 RTC 时间异常（如首次上电后备电池未安装），需联网 NTP 校时或手动设置后方可正常使用时间戳功能。"
+    },
+    {
+      "index": 171,
+      "style": "Normal",
+      "text": "八、授权码激活"
+    },
+    {
+      "index": 172,
+      "style": "Normal",
+      "text": "本设备采用离线授权码激活机制，实现设备绑定与试用期管理。授权码基于HMAC-SHA256 签名算法生成，与设备 ID 绑定，无法伪造。"
+    },
+    {
+      "index": 173,
+      "style": "Heading 3",
+      "text": "8.1 授权码格式"
+    },
+    {
+      "index": 174,
+      "style": "Normal",
+      "text": "授权码格式为：A1-过期时间戳-随机数-签名（如 A1-XXXXXXXX-XXXXXXXX-XXXXXXXXXXXXXXXX）。其中签名取 HMAC-SHA256（密钥，设备ID|过期|随机数|产品|版本）的前 64 位。设备内嵌完整 SHA-256 实现，无外部密码学依赖。"
+    },
+    {
+      "index": 175,
+      "style": "Heading 3",
+      "text": "8.2 试用码"
+    },
+    {
+      "index": 176,
+      "style": "Normal",
+      "text": "设备启动后会在登录界面生成一个 30 天有效的试用激活码，供试用与演示。将此码（或由厂家工具生成的正式码）输入激活框，点击\"激活设备\"即可完成激活。"
+    },
+    {
+      "index": 178,
+      "style": "Heading 3",
+      "text": "8.3 激活操作"
+    },
+    {
+      "index": 179,
+      "style": "Normal",
+      "text": "1. 在登录界面\"激活码\"输入框中粘贴或输入授权码。"
+    },
+    {
+      "index": 180,
+      "style": "Normal",
+      "text": "2. 点击\"激活设备\"按钮。"
+    },
+    {
+      "index": 181,
+      "style": "Normal",
+      "text": "3. 激活成功：界面显示剩余天数与到期时间，按钮变为\"进入系统\"。"
+    },
+    {
+      "index": 182,
+      "style": "Normal",
+      "text": "4. 激活失败：根据错误类型提示\"激活码格式错误\"\"激活码校验失败\"\"激活码已过期\"或\"授权保存失败\"。"
+    },
+    {
+      "index": 183,
+      "style": "Normal",
+      "text": "5. 已授权状态下点击\"进入系统\"即可进入主界面。"
+    },
+    {
+      "index": 184,
+      "style": "Heading 3",
+      "text": "8.4 授权持久化"
+    },
+    {
+      "index": 185,
+      "style": "Normal",
+      "text": "激活成功后，授权记录保存至 data/license_auth.dat 文件，断电不丢失。每次启动设备会重新加载并验签，防止文件被篡改。"
+    },
+    {
+      "index": 188,
+      "style": "Normal",
+      "text": "九、状态指示说明"
+    },
+    {
+      "index": 189,
+      "style": "Normal",
+      "text": "主屏指示反映设备当前通讯与运行状态："
+    },
+    {
+      "index": 191,
+      "style": "Heading 1",
+      "text": "十、常见问题排查"
+    },
+    {
+      "index": 193,
+      "style": "Heading 1",
+      "text": "十一、USB 固件烧录"
+    },
+    {
+      "index": 194,
+      "style": "Normal",
+      "text": "本设备基于 ArtInChip 平台，固件烧录采用 USB 方式，使用官方 AiBurn 烧录工具。该操作面向设备调试与生产人员，普通使用者通常无需执行。"
+    },
+    {
+      "index": 195,
+      "style": "Heading 3",
+      "text": "11.1 烧录工具"
+    },
+    {
+      "index": 196,
+      "style": "Normal",
+      "text": "烧录工具为 ArtInChip 官方提供的 AiBurn（PC 端 GUI 软件），配合 USB 数据线连接设备与电脑即可完成烧录。"
+    },
+    {
+      "index": 198,
+      "style": "Heading 3",
+      "text": "11.2 进入烧录模式"
+    },
+    {
+      "index": 199,
+      "style": "Normal",
+      "text": "烧录前需让设备进入烧录模式，任选以下方式之一："
+    },
+    {
+      "index": 200,
+      "style": "Normal",
+      "text": "• 设备断电状态下，按住板载 UBOOT 键不放，再接通电源。"
+    },
+    {
+      "index": 201,
+      "style": "Normal",
+      "text": "• 设备已上电状态下，按住 UBOOT 键不放，再按一下 RESET 复位键，再松开 UBOOT 键。（推荐）"
+    },
+    {
+      "index": 202,
+      "style": "Normal",
+      "text": "进入烧录模式后，电脑端 AiBurn 软件右下角会出现\"设备已连接\"提示，表示设备已就绪。"
+    },
+    {
+      "index": 203,
+      "style": "Heading 3",
+      "text": "11.3 烧录步骤"
+    },
+    {
+      "index": 204,
+      "style": "Normal",
+      "text": "1. 打开电脑端 AiBurn 软件，进入\"烧写镜像\"页面。"
+    },
+    {
+      "index": 205,
+      "style": "Normal",
+      "text": "2. 将设备按上述任一方式进入烧录模式，用 USB 线连接设备与电脑。"
+    },
+    {
+      "index": 206,
+      "style": "Normal",
+      "text": "3. 等待 AiBurn 识别到设备，确认右下角显示\"设备已连接\"。"
+    },
+    {
+      "index": 207,
+      "style": "Normal",
+      "text": "4. 在 AiBurn 中选择已编译好的镜像文件（位于 luban-lite SDK 的 output 目录）。"
+    },
+    {
+      "index": 208,
+      "style": "Normal",
+      "text": "5. 软件自动识别镜像基本信息（分区、大小等），核对无误后点击\"开始\"。"
+    },
+    {
+      "index": 209,
+      "style": "Normal",
+      "text": "6. 等待烧录完成，界面显示进度、速率与用时；完成后设备自动复位启动。"
+    },
+    {
+      "index": 210,
+      "style": "Heading 3",
+      "text": "11.4 固件文件说明"
+    },
+    {
+      "index": 211,
+      "style": "Normal",
+      "text": "设备 SPI Flash 内的固件由若干分区组成：spl（bootloader）、env（环境变量）、os/os_r（A/B 系统）、rodata（资源）、data（数据）。整体烧录时使用打包好的 .img 镜像，一次性写入所有分区；分区烧录时可单独更新 os、rodata 或 data。"
+    },
+    {
+      "index": 212,
+      "style": "Heading 3",
+      "text": "11.5 烧录注意事项"
+    },
+    {
+      "index": 213,
+      "style": "Normal",
+      "text": "⚠ 烧录过程中严禁断电或拔出 USB 线，否则可能导致设备无法启动。"
+    },
+    {
+      "index": 214,
+      "style": "Normal",
+      "text": "烧录前请确认镜像文件与设备型号匹配（d13x demo88-nor 平台）。"
+    },
+    {
+      "index": 215,
+      "style": "Normal",
+      "text": "若烧录失败，可重新进入烧录模式再次尝试，设备不会变砖（bootloader 位于固定分区，不受影响）。"
+    },
+    {
+      "index": 216,
+      "style": "Heading 1",
+      "text": "十二、规格参数"
+    },
+    {
+      "index": 218,
+      "style": "Heading 1",
+      "text": "附录  Modbus 寄存器速查"
+    },
+    {
+      "index": 219,
+      "style": "Normal",
+      "text": "SP00–SP18 寄存器地址映射（标准模式）："
+    },
+    {
+      "index": 220,
+      "style": "Normal",
+      "text": "注：SP13 之后参数地址不连续，属正常现象，由驱动器内部寄存器映射决定。非标准模式下，SP00–SP18 对应十进制地址 0–18。"
+    },
+    {
+      "index": 222,
+      "style": "Normal",
+      "text": "深圳星火自动化科技有限公司"
+    }
+  ],
+  "tables": [
+    {
+      "index": 0,
+      "rows": 4,
+      "cols": 3,
+      "text": [
+        [
+          "端子",
+          "定义",
+          "说明"
+        ],
+        [
+          "1",
+          "GND",
+          "信号参考地"
+        ],
+        [
+          "2",
+          "A",
+          "RS485 数据+"
+        ],
+        [
+          "3",
+          "B",
+          "RS485 数据-"
+        ]
+      ]
+    },
+    {
+      "index": 1,
+      "rows": 9,
+      "cols": 3,
+      "text": [
+        [
+          "指示",
+          "状态",
+          "说明"
+        ],
+        [
+          "电源灯",
+          "常亮",
+          "设备已上电"
+        ],
+        [
+          "状态栏",
+          "连接成功",
+          "通讯链路建立并探测到设备"
+        ],
+        [
+          "状态栏",
+          "未连接",
+          "链路未建立或探测失败"
+        ],
+        [
+          "更新升级弹窗",
+          "正在升级",
+          "OTA 下载/烧写进行中"
+        ],
+        [
+          "更新升级弹窗",
+          "当前已是最新版本",
+          "无需升级"
+        ],
+        [
+          "更新升级弹窗",
+          "无法连接升级服务器",
+          "设备没用连网"
+        ],
+        [
+          "授权界面",
+          "授权有效",
+          "当前授权未过期"
+        ],
+        [
+          "授权界面",
+          "授权过期",
+          "授权已过期，需重新激活"
+        ]
+      ]
+    },
+    {
+      "index": 2,
+      "rows": 9,
+      "cols": 3,
+      "text": [
+        [
+          "现象",
+          "可能原因",
+          "处理方法"
+        ],
+        [
+          "读取超时 timeout",
+          "接线错误/从机地址不符/波特率不符",
+          "检查 A/B 接线、从机地址、波特率"
+        ],
+        [
+          "读取数值异常",
+          "设备为非标准 Modbus",
+          "第二屏切换\"是否标准\"后重新连接"
+        ],
+        [
+          "无法连接以太网",
+          "IP 冲突/网线问题",
+          "检查静态 IP 与网线，ping 测试"
+        ],
+        [
+          "OTA 无法检查更新",
+          "WiFi 未联网/平台未上传固件",
+          "检查 WiFi 联网与平台固件"
+        ],
+        [
+          "OTA 中途失败",
+          "断网/断电",
+          "重新点击更新升级，从备用系统启动"
+        ],
+        [
+          "RTC 时间异常",
+          "后备电池失效/未校时",
+          "联网 NTP 校时或手动 date 设置"
+        ],
+        [
+          "授权激活失败",
+          "授权码过期/格式错/校验失败",
+          "重新生成正式授权码激活"
+        ],
+        [
+          "触摸屏无响应",
+          "系统卡死",
+          "按 RESET 键复位"
+        ]
+      ]
+    },
+    {
+      "index": 3,
+      "rows": 16,
+      "cols": 2,
+      "text": [
+        [
+          "项目",
+          "规格"
+        ],
+        [
+          "主控芯片",
+          "ArtInChip D133CBV（RISC-V T-Head E907fdp）"
+        ],
+        [
+          "操作系统",
+          "RT-Thread 实时操作系统"
+        ],
+        [
+          "显示屏",
+          "7 寸彩色电容触摸屏"
+        ],
+        [
+          "WiFi",
+          "AIC8800D40L（对应 AIC8800D80）"
+        ],
+        [
+          "以太网 PHY",
+          "RTL8201F（RMII）"
+        ],
+        [
+          "Flash",
+          "SPI NOR 16MB"
+        ],
+        [
+          "RS485",
+          "uart1，4800-8N1，自动收发切换"
+        ],
+        [
+          "以太网",
+          "静态 IP 192.168.1.2，端口 8080"
+        ],
+        [
+          "供电电源",
+          "用USB口进行供电"
+        ],
+        [
+          "工作温度",
+          "0 ℃ ~ 50 ℃"
+        ],
+        [
+          "存储温度",
+          "-20 ℃ ~ 60 ℃"
+        ],
+        [
+          "相对湿度",
+          "5% ~ 90%（无凝露）"
+        ],
+        [
+          "安装方式",
+          "导轨/嵌入式"
+        ],
+        [
+          "图形框架",
+          "LVGL 9.x"
+        ],
+        [
+          "网络协议栈",
+          "lwIP 2.1.2"
+        ]
+      ]
+    },
+    {
+      "index": 4,
+      "rows": 20,
+      "cols": 3,
+      "text": [
+        [
+          "参数",
+          "地址",
+          "说明"
+        ],
+        [
+          "SP00",
+          "0x00",
+          "运行电流"
+        ],
+        [
+          "SP01",
+          "0x01",
+          "锁机电流"
+        ],
+        [
+          "SP02",
+          "0x02",
+          "细分"
+        ],
+        [
+          "SP03",
+          "0x03",
+          "母线电压"
+        ],
+        [
+          "SP04",
+          "0x04",
+          "边沿控制"
+        ],
+        [
+          "SP05",
+          "0x05",
+          "滤波时间"
+        ],
+        [
+          "SP06",
+          "0x06",
+          "启动速度"
+        ],
+        [
+          "SP07",
+          "0x07",
+          "加速度"
+        ],
+        [
+          "SP08",
+          "0x08",
+          "运行速度"
+        ],
+        [
+          "SP09",
+          "0x09",
+          "正向脉冲数量"
+        ],
+        [
+          "SP10",
+          "0x0A",
+          "反向脉冲数量"
+        ],
+        [
+          "SP11",
+          "0x0B",
+          "运行次数"
+        ],
+        [
+          "SP12",
+          "0x0C",
+          "运动模式"
+        ],
+        [
+          "SP13",
+          "0x0D",
+          "机器码"
+        ],
+        [
+          "SP14",
+          "0x11",
+          "电机电感量"
+        ],
+        [
+          "SP15",
+          "0x1F",
+          "当前速度"
+        ],
+        [
+          "SP16",
+          "0x20",
+          "控制命令"
+        ],
+        [
+          "SP17",
+          "0x28",
+          "IO 输入口"
+        ],
+        [
+          "SP18",
+          "0x37",
+          "电机状态"
+        ]
+      ]
+    }
+  ],
+  "parts": {
+    "[Content_Types].xml": 2290,
+    "_rels/": 0,
+    "_rels/.rels": 881,
+    "customXml/": 0,
+    "customXml/_rels/": 0,
+    "customXml/_rels/item1.xml.rels": 296,
+    "customXml/item1.xml": 243,
+    "customXml/itemProps1.xml": 236,
+    "docProps/": 0,
+    "docProps/app.xml": 636,
+    "docProps/core.xml": 692,
+    "docProps/custom.xml": 750,
+    "docProps/thumbnail.wmf": 9728,
+    "word/": 0,
+    "word/_rels/": 0,
+    "word/_rels/document.xml.rels": 3346,
+    "word/document.xml": 118822,
+    "word/endnotes.xml": 1596,
+    "word/fontTable.xml": 4740,
+    "word/footer1.xml": 1944,
+    "word/footnotes.xml": 1652,
+    "word/header1.xml": 1665,
+    "word/media/": 0,
+    "word/media/image1.jpeg": 257879,
+    "word/media/image10.png": 154237,
+    "word/media/image11.png": 184018,
+    "word/media/image12.jpeg": 88525,
+    "word/media/image13.jpeg": 85709,
+    "word/media/image14.png": 78799,
+    "word/media/image2.png": 100864,
+    "word/media/image3.png": 73971,
+    "word/media/image4.png": 80409,
+    "word/media/image5.png": 212052,
+    "word/media/image6.png": 279149,
+    "word/media/image7.png": 27839,
+    "word/media/image8.png": 221848,
+    "word/media/image9.png": 128897,
+    "word/numbering.xml": 4189,
+    "word/settings.xml": 3610,
+    "word/styles.xml": 360308,
+    "word/theme/": 0,
+    "word/theme/theme1.xml": 7621
+  }
+}

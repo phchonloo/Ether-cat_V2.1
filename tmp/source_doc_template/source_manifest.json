@@ -1,0 +1,434 @@
+{
+  "source_root": "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\program\\FCM4E1553 Ethercat",
+  "output": "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\docs\\FCM4E1553_源代码_60页.docx",
+  "source_files": 84,
+  "source_lines": 26803,
+  "document_source_lines": 3300,
+  "selection": "first 1650 lines + last 1650 lines",
+  "document_paragraphs": 3300,
+  "planned_pages": 60,
+  "logical_lines_per_page_min": 55,
+  "logical_lines_per_page_max": 55,
+  "files": [
+    {
+      "path": "Ethercat/Inc/applInterface.h",
+      "lines": 142,
+      "sha256": "5dec0721d31a6987884df62f61fc496ba7de0cc0f288a7089b7c1ed14ebd6d31"
+    },
+    {
+      "path": "Ethercat/Inc/cia402appl.h",
+      "lines": 1343,
+      "sha256": "c32d4e033dddd3781e2c660364466a915649b00436f937ca62272118a3b53c71"
+    },
+    {
+      "path": "Ethercat/Inc/coeappl.h",
+      "lines": 119,
+      "sha256": "5ef05817612e710bbc5c1a76677a753b6d92e5a6584ffc980fc373134c3132e9"
+    },
+    {
+      "path": "Ethercat/Inc/ecat_def.h",
+      "lines": 1082,
+      "sha256": "4a598151910e0065981773dc9ca278842e42daef27fef460ea0bdaa9a1f00319"
+    },
+    {
+      "path": "Ethercat/Inc/ecatappl.h",
+      "lines": 213,
+      "sha256": "0d86b41d12eee938b65fdd037ca76aee06fe7eea044ef43b9ee5c11fe25e2f12"
+    },
+    {
+      "path": "Ethercat/Inc/ecatcoe.h",
+      "lines": 115,
+      "sha256": "a08e0052f42cebd8bc9e16a45cb2e875a120aa9666fe03fa4e5a18026343a60c"
+    },
+    {
+      "path": "Ethercat/Inc/ecatslv.h",
+      "lines": 455,
+      "sha256": "d48351546db6c60bfe908aec090bdfac7e81eab6f99d27a589881c26893149e6"
+    },
+    {
+      "path": "Ethercat/Inc/el9800appl.h",
+      "lines": 70,
+      "sha256": "1941bd602b61df77d9baea1ec7e230b57fba13b86acd66554e3d2f5abaacee5c"
+    },
+    {
+      "path": "Ethercat/Inc/el9800applObjects.h",
+      "lines": 788,
+      "sha256": "129f765635458db7ad34128c77d3ebed6541e982f57d204c560b2ea7b5a9d672"
+    },
+    {
+      "path": "Ethercat/Inc/el9800hw.h",
+      "lines": 232,
+      "sha256": "5739e3372b84c4fda3a38fadb7e78397e85f936fd9c3c2b8965ba27d2afd825d"
+    },
+    {
+      "path": "Ethercat/Inc/esc.h",
+      "lines": 191,
+      "sha256": "af753f47d1188243cdb72fa18af78bf41362bcd93553bebe28e7e36b622c5690"
+    },
+    {
+      "path": "Ethercat/Inc/mailbox.h",
+      "lines": 193,
+      "sha256": "93d597d52c412ad314cc1206fd44264e42a4a5d0c141feeb95a7279bb961e3ae"
+    },
+    {
+      "path": "Ethercat/Inc/objdef.h",
+      "lines": 293,
+      "sha256": "548b643f79fb02f04b25253c6ab35385401823840e1c9bdf0234eb221c6476ae"
+    },
+    {
+      "path": "Ethercat/Inc/sdoserv.h",
+      "lines": 649,
+      "sha256": "1b118de75cb27d31992b8cee45ea356c1c0855c92d7575a8c215b5097bbe0d3d"
+    },
+    {
+      "path": "Ethercat/port/el9800hw.c",
+      "lines": 827,
+      "sha256": "dbde62ff2ea0cf04bf60825cb6a781fc5131b2cdd7712d1bf028e76f9764cdad"
+    },
+    {
+      "path": "Ethercat/src/cia402appl.c",
+      "lines": 1922,
+      "sha256": "797d6bd3410a6468be01d0d42e01979cda5ad7ce77c0cdb81c8598478293a12f"
+    },
+    {
+      "path": "Ethercat/src/coeappl.c",
+      "lines": 955,
+      "sha256": "0d08f33a57cd485a6fcc34c937fbb650e6a4f00999cc98b171bd5a3a2769571a"
+    },
+    {
+      "path": "Ethercat/src/ecatappl.c",
+      "lines": 1164,
+      "sha256": "ee6278526746289fe80e6b970c561f52e9f029a58521b35b25f68b3ae1d02a08"
+    },
+    {
+      "path": "Ethercat/src/ecatcoe.c",
+      "lines": 188,
+      "sha256": "9497307e479fb7d71b4bd0b50c5d5e2baaa2145dabb72c98aea3d5b216332eac"
+    },
+    {
+      "path": "Ethercat/src/ecatslv.c",
+      "lines": 2742,
+      "sha256": "da1007b8fb02427749ac9b687ed3b52ba4b146bc6f0d8d171de0c0fb78b98088"
+    },
+    {
+      "path": "Ethercat/src/el9800appl.c",
+      "lines": 483,
+      "sha256": "82423a2d6a54837be32762c0525ca3b5396992d6c7e5f4878a96d5009fc18db3"
+    },
+    {
+      "path": "Ethercat/src/mailbox.c",
+      "lines": 996,
+      "sha256": "df0075a10324127c967975d9649624eec45dae916732fcaa01ac3f7a644f6007"
+    },
+    {
+      "path": "Ethercat/src/objdef.c",
+      "lines": 1821,
+      "sha256": "e1a068a1c7a97e0d5e63e6d04760781ac2e34873ace8c800af0f877dbcfe2d46"
+    },
+    {
+      "path": "Ethercat/src/sdoserv.c",
+      "lines": 1397,
+      "sha256": "09e2d8b5ca8df6fb1b4eb9a1f5f9cab0d787c533e869e5191a2cd0bfa0bfed81"
+    },
+    {
+      "path": "RS485_ModbusRTU/modbus.c",
+      "lines": 527,
+      "sha256": "f8ba95a964ec13bb65f2570fef82e0e4e09d69d3b95861f8b8d3f829a8edafb4"
+    },
+    {
+      "path": "RS485_ModbusRTU/modbus.h",
+      "lines": 67,
+      "sha256": "cf92d1b6f331385e2deca5d4f480847db68cb68cabd311cf77598a2d05812bca"
+    },
+    {
+      "path": "SYSTEM/delay/delay.h",
+      "lines": 7,
+      "sha256": "a07b60696f4e1734c44cc11d259dcbabb142e94c9c8647ef2108f04d58455ff2"
+    },
+    {
+      "path": "SYSTEM/delay/systick.c",
+      "lines": 264,
+      "sha256": "7353e15a5018ab05f07a74029a611de0037f5d8f61540970e31b10d8fbe684a5"
+    },
+    {
+      "path": "SYSTEM/delay/systick.h",
+      "lines": 70,
+      "sha256": "948d452c051119ccaa51cf2bb082ee59fc13a130578e2db412c13c900df7782a"
+    },
+    {
+      "path": "SYSTEM/sys/sys.c",
+      "lines": 44,
+      "sha256": "099a1dc06bed464f6287588a228affd5281691993c6fad97c23085cd12901218"
+    },
+    {
+      "path": "SYSTEM/sys/sys.h",
+      "lines": 55,
+      "sha256": "f9731b975667fd1dcb191fb0bafad4426d5ee7ff1306b6ae68dae4a4e4e9c275"
+    },
+    {
+      "path": "SYSTEM/usart/usart.c",
+      "lines": 158,
+      "sha256": "489c09a1d9a0d1be90fe06e1bfbf5b07d67e97f01fb8385afd230be4fbcd4953"
+    },
+    {
+      "path": "SYSTEM/usart/usart.h",
+      "lines": 38,
+      "sha256": "77458bee587bef3e04005f260104a71b536c87a16df72dfc7e9bdf8ac266add3"
+    },
+    {
+      "path": "User/AdcInit.c",
+      "lines": 138,
+      "sha256": "3823545b78d380171f4d6ebf5a90e06aabdd42e26b6bfadff00fb8695cf74273"
+    },
+    {
+      "path": "User/AdcInit.h",
+      "lines": 11,
+      "sha256": "6c11678680eac9f20054d3e5318f06f2cf824ab873e5bce0ea7be22bbe798d9e"
+    },
+    {
+      "path": "User/can.c",
+      "lines": 164,
+      "sha256": "055f66c392ffaedb38d544edebbb8a28dacb59023f00fbc8f94450d74f2555e8"
+    },
+    {
+      "path": "User/can.h",
+      "lines": 75,
+      "sha256": "5506f7230ed12f6a07d65192b5381b95b072d88c22eabb4a25528363ce4e5c73"
+    },
+    {
+      "path": "User/EcatPulsePosition.h",
+      "lines": 122,
+      "sha256": "9e10b6d3ed26743e592b8c87b7b1f4d399068b9be0ab4291332615758351f34c"
+    },
+    {
+      "path": "User/eeprom.c",
+      "lines": 464,
+      "sha256": "39336e32d15cb82b25537de81377cb7927e9610e66179d57094b4c474e4a1afc"
+    },
+    {
+      "path": "User/eeprom.h",
+      "lines": 75,
+      "sha256": "987d28a4c5afe545f118aa1c677d0d65e5b2d8bd00d226066d7b4d8a1851b377"
+    },
+    {
+      "path": "User/eeprom_console.c",
+      "lines": 298,
+      "sha256": "9617d7293a1df5ebfb8b901dc3329038e2d1898a5d6cd9663e5079a3e5c9edf6"
+    },
+    {
+      "path": "User/eeprom_console.h",
+      "lines": 15,
+      "sha256": "00b3c4ec6e2ce32048ee85854d6941678cebfffbd65c071361417715e7240d92"
+    },
+    {
+      "path": "User/Errorhadle.c",
+      "lines": 102,
+      "sha256": "5cf828f5ac839683f04cf6977f335ff541f398368aa728a36e7a34117fd6581c"
+    },
+    {
+      "path": "User/Errorhadle.h",
+      "lines": 17,
+      "sha256": "647c33b6896feb144976900429b9e7dc8af4bbd02f3cb471b14ab654d10b3651"
+    },
+    {
+      "path": "User/EthercatMotorControl.c",
+      "lines": 1176,
+      "sha256": "8a3e539703c6caee288be4fdaeb64c49b2db30550caa24c81e54bed29bae99e1"
+    },
+    {
+      "path": "User/EthercatMotorControl.h",
+      "lines": 61,
+      "sha256": "d4d82f149a9dd299b9eaeeaed8f42e57fc68e07b6ef926aec7f3f7519ba9931d"
+    },
+    {
+      "path": "User/exti.c",
+      "lines": 83,
+      "sha256": "9484396cfe9030390c85404c7a11877c653d273d75b09377604ae0914b6c66f6"
+    },
+    {
+      "path": "User/exti.h",
+      "lines": 18,
+      "sha256": "419554c81aee988675f533358a6a52a50e6850c48fafecbd5efec4e7f7b57f52"
+    },
+    {
+      "path": "User/flash.c",
+      "lines": 92,
+      "sha256": "0ab515215178fc6ec000401c54f4b919f8069addd51b8be3ed426200859e38e7"
+    },
+    {
+      "path": "User/Flash.h",
+      "lines": 17,
+      "sha256": "5522c72620ecd2ce86e600716f15cfe34dcaf8196e86c408cca7ae874fd68a8f"
+    },
+    {
+      "path": "User/IoIntInit.c",
+      "lines": 291,
+      "sha256": "4872bb5c1f9dbdc301c7b2cda9dae21de7c94ee2133f2bae9d246b08ac4d6aa5"
+    },
+    {
+      "path": "User/IoIntInit.h",
+      "lines": 79,
+      "sha256": "7950b4e4e8bbcc9ac288a47d80c4931124a6e3baa54e2ca7f11c88729810f940"
+    },
+    {
+      "path": "User/main.c",
+      "lines": 143,
+      "sha256": "40cc74a790436588927f2b651e6c187877b912ee274374919e1f0e069deb4066"
+    },
+    {
+      "path": "User/main.h",
+      "lines": 9,
+      "sha256": "39d4f8b36f286915045c7aff588f684f17487f3b980a8f633eb650746574b9c0"
+    },
+    {
+      "path": "User/mcuinit.h",
+      "lines": 47,
+      "sha256": "197182e2faea09382fc327c3f4abd106fc282e68e6e3461af4bae945f2dbbe9e"
+    },
+    {
+      "path": "User/MotionPID.h",
+      "lines": 28,
+      "sha256": "ce741834e86306c67a354e39117ca20f2fef2dbd7749d9f316b6684f3db7db41"
+    },
+    {
+      "path": "User/n32g45x_it.c",
+      "lines": 53,
+      "sha256": "dcd67fff9f8c435a3c85cead3392d1b047b5e96d192babe1ee663250a80fbb14"
+    },
+    {
+      "path": "User/n32g45x_it.h",
+      "lines": 16,
+      "sha256": "0be1d200be4a4c91e97486cb49de4be563ca33ebf78fd129aa9f61d51763958a"
+    },
+    {
+      "path": "User/N32G45XSYS.h",
+      "lines": 22,
+      "sha256": "3b3b798fa13a2cecb31d2c88ceb0b441a684849f92607d99e56366ab88c7f0b8"
+    },
+    {
+      "path": "User/PulseHandle.c",
+      "lines": 190,
+      "sha256": "548ba0318ca05051436210bfcf4ce88a3ea511192926ebf036a5089f1450b147"
+    },
+    {
+      "path": "User/PulseHandle.h",
+      "lines": 21,
+      "sha256": "bc91cfed8d72a900331e023cc54d8dd01cbc4d19fee2b0fcd7b33fcb97a19959"
+    },
+    {
+      "path": "User/PwmInit.c",
+      "lines": 220,
+      "sha256": "deb0fdd1f333dfff22221f1302fc92b5f049daee2bd826dcb977c61b9794deec"
+    },
+    {
+      "path": "User/PwmInit.h",
+      "lines": 29,
+      "sha256": "16b21dd41542825f43c4b7b1569ff99cfa4f05d8026c8d2860edc2784bb52ca4"
+    },
+    {
+      "path": "User/qep.c",
+      "lines": 206,
+      "sha256": "ead47ea17523b91ff13898eb25a1fc8940e9d43a5d8b6f9e0a5ff5b5694bcd6a"
+    },
+    {
+      "path": "User/qep.h",
+      "lines": 46,
+      "sha256": "4d8ff5a60395e9e7c73ae4eb34fc218205549e32bed7e4f6f57ddab7669a23c2"
+    },
+    {
+      "path": "User/qspi.c",
+      "lines": 276,
+      "sha256": "4d2ebc2d013ece5985fa6df83dbef1968f75228286ad3bffd6f6e249f58024bf"
+    },
+    {
+      "path": "User/qspi.h",
+      "lines": 120,
+      "sha256": "58f429d522572cc7b652da0d91bca843f78afd818f7a32ad096aa8849012e0fd"
+    },
+    {
+      "path": "User/rs485.c",
+      "lines": 332,
+      "sha256": "e0966edf0daf91bb7c07e34034576b49f38933578f6df8a6b7aa5c67021f5c15"
+    },
+    {
+      "path": "User/rs485.h",
+      "lines": 52,
+      "sha256": "7174ff59ad90b8a7ad34713708df54d19609b0783f2a9dfe5d64af83fcd193c2"
+    },
+    {
+      "path": "User/SaveFunc.c",
+      "lines": 26,
+      "sha256": "72849d8447a235e6255939319eab5650430eeb02735e7d2886488d62c8c5d2a1"
+    },
+    {
+      "path": "User/SaveFunc.h",
+      "lines": 14,
+      "sha256": "e7e2fff696a62985c6507c8db66b7e1c7dae04f4be23db6b7b7291aabc460f04"
+    },
+    {
+      "path": "User/SciInit.c",
+      "lines": 413,
+      "sha256": "eb2b8fec3183da098960f3713676a80d13595d688c3a39dcb9c902d60d778393"
+    },
+    {
+      "path": "User/SciInit.h",
+      "lines": 52,
+      "sha256": "6f50d0ffd48093621948bdd607651479202bfdb2d05ee2a313223885a0ddef22"
+    },
+    {
+      "path": "User/timer.c",
+      "lines": 149,
+      "sha256": "12846347a2d02da5174cf2056acb38c3daa3e3da401316b11527fd28077dfd35"
+    },
+    {
+      "path": "User/timer.h",
+      "lines": 27,
+      "sha256": "fe12f555ff3cfa8bf2b8a1fd4a09916740e9b0e18799f4850f1bb248d13df3d2"
+    },
+    {
+      "path": "User/u_i2c.c",
+      "lines": 167,
+      "sha256": "36a2a061292233cf18685d16f3cf62b3aa27316bfa6dac312a6b01886346334e"
+    },
+    {
+      "path": "User/u_i2c.h",
+      "lines": 29,
+      "sha256": "65af7852ad912ee668812f996a03d36b074643848279da44b274164cf9306a0c"
+    },
+    {
+      "path": "User/uartc.c",
+      "lines": 6,
+      "sha256": "67076532469d3fb2f35ffb6e3a5ebfd9e6b459d181c63afc7300cd532cb9bc72"
+    },
+    {
+      "path": "User/uartc.h",
+      "lines": 9,
+      "sha256": "71539165b8d3fd52dbcdba46c8971d4efeb3a2865f4bed529b2cb0cb480e5aa9"
+    },
+    {
+      "path": "USMART/usmart.c",
+      "lines": 452,
+      "sha256": "f7ac5813a052cca3230508f5e51361cfa4f21bc453d1d969878615e3eecd8197"
+    },
+    {
+      "path": "USMART/usmart.h",
+      "lines": 158,
+      "sha256": "321deccb978497a4e9f135a8b0c0f6578726ce352ff36f1598f9ed4dda8e1543"
+    },
+    {
+      "path": "USMART/usmart_config.c",
+      "lines": 74,
+      "sha256": "cad55d2f76270cf86bf59970bba9a9f637ecf011e94c3d3795e229f7cd4af1fc"
+    },
+    {
+      "path": "USMART/usmart_str.c",
+      "lines": 426,
+      "sha256": "0812b6b162ab2f4ae624ca2fd7db893b4604ab1facf72009cf40cdf639a01164"
+    },
+    {
+      "path": "USMART/usmart_str.h",
+      "lines": 83,
+      "sha256": "c20a0f8eab4c4c78f16c85f83a1cf9acac06bd7207ef3838dafed2bbc7b394cf"
+    }
+  ]
+}

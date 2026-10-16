@@ -1,0 +1,73 @@
+{
+  "pages": 60,
+  "blank_pages": [],
+  "edge_risk_pages": [],
+  "contacts": [
+    "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\tmp\\source_doc_final_render\\contact-01-15.png",
+    "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\tmp\\source_doc_final_render\\contact-16-30.png",
+    "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\tmp\\source_doc_final_render\\contact-31-45.png",
+    "C:\\Users\\pc\\Desktop\\01_FCM4E1553_SQI_82_CTT_V1.4\\tmp\\source_doc_final_render\\contact-46-60.png"
+  ],
+  "sample_bboxes": [
+    {
+      "page": 1,
+      "blank": false,
+      "bbox": [
+        65,
+        66,
+        805,
+        676
+      ],
+      "edge_risk": false,
+      "size": [
+        910,
+        1287
+      ]
+    },
+    {
+      "page": 30,
+      "blank": false,
+      "bbox": [
+        65,
+        66,
+        812,
+        701
+      ],
+      "edge_risk": false,
+      "size": [
+        910,
+        1287
+      ]
+    },
+    {
+      "page": 31,
+      "blank": false,
+      "bbox": [
+        65,
+        77,
+        505,
+        668
+      ],
+      "edge_risk": false,
+      "size": [
+        910,
+        1287
+      ]
+    },
+    {
+      "page": 60,
+      "blank": false,
+      "bbox": [
+        65,
+        66,
+        647,
+        553
+      ],
+      "edge_risk": false,
+      "size": [
+        910,
+        1287
+      ]
+    }
+  ]
+}
