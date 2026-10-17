@@ -48,7 +48,7 @@ for index, (typ, bits) in telemetry_types.items():
     o = by_index[index]
     assert (o.findtext('Type'), int(o.findtext('BitSize')),
             o.findtext('Flags/Access'), o.findtext('Flags/PdoMapping')) == (typ, bits, 'ro', 't')
-for index, default in ((0x2010,3300), (0x2011,0), (0x2012,1666667),
+for index, default in ((0x2010,3300), (0x2011,200000), (0x2012,1666667),
                        (0x2013,1666667), (0x6075,0)):
     o = by_index[index]
     assert o.findtext('Type') == 'UDINT' and o.findtext('BitSize') == '32'

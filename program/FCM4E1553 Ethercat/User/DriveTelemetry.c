@@ -6,7 +6,10 @@
 extern TCiA402Axis LocalAxes[MAX_AXES];
 
 DriveTelemetryValues gDriveTelemetry;
-DriveTelemetryConfig gDriveTelemetryConfig = {3300U, 0U, 1666667U, 1666667U, 0U};
+DriveTelemetryConfig gDriveTelemetryConfig = {
+    DT_DEFAULT_VREF_MV, DT_DEFAULT_SENSITIVITY_UVA,
+    DT_DEFAULT_ZERO_UV, DT_DEFAULT_ZERO_UV, 0U
+};
 
 typedef struct {
     uint32_t sequence, cycle;
@@ -39,13 +42,17 @@ void DriveTelemetry_Init(void)
     memset(sConverted, 0, sizeof(sConverted));
     sRawIndex = sRawCount = sAdcError = sConvertedIndex = sLastUpdate = 0U;
     sExpiredSequence = 0U;
-    gDriveTelemetryConfig.vrefMv = 3300U;
-    /* The drawing specifies MT9220CT-10BR5, not MT9221 or an ACS712 range.
-     * Do not invent its gain. Confirm sensitivity and zero offsets on hardware. */
-    gDriveTelemetryConfig.sensitivityUvA = 0U;
-    gDriveTelemetryConfig.zeroAUv = gDriveTelemetryConfig.zeroBUv = 1666667U;
+    gDriveTelemetryConfig.vrefMv = DT_DEFAULT_VREF_MV;
+    /* MT9221 Rev 2.0, p9: +/-10 A, 200 mV/A, Vzero=VCC/2 at 5 V.
+     * User-authorized substitute profile only; verify the fitted sensor,
+     * supply, VDDA and both zero offsets before trusting physical accuracy. */
+    gDriveTelemetryConfig.sensitivityUvA = DT_DEFAULT_SENSITIVITY_UVA;
+    gDriveTelemetryConfig.zeroAUv = gDriveTelemetryConfig.zeroBUv = DT_DEFAULT_ZERO_UV;
+    /* Sensor full scale is NOT the motor's rated/reference current. */
     gDriveTelemetryConfig.ratedCurrentMa = 0U;
-    sConverted[0].values.status = DT_ADC_STALE | DT_CURRENT_UNCALIBRATED | DT_RATED_UNSET;
+    sConverted[0].values.status = DT_ADC_STALE | DT_RATED_UNSET;
+    if (gDriveTelemetryConfig.sensitivityUvA == 0U)
+        sConverted[0].values.status |= DT_CURRENT_UNCALIBRATED;
     InvalidMeasurements(&sConverted[0].values);
     sConverted[0].values.hardwareVersion = 0x0102U;
     sConverted[0].values.softwareVersion = 0x0100U;

@@ -1249,9 +1249,9 @@
                 <Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
               </Object>
               <Object>
-                <Index>#x2011</Index><Name>Sensor sensitivity uV per A (0=unconfirmed)</Name>
+                <Index>#x2011</Index><Name>Sensor sensitivity uV per A (0=disabled)</Name>
                 <Type>UDINT</Type><BitSize>32</BitSize>
-                <Info><DefaultData>00000000</DefaultData></Info>
+                <Info><DefaultData>400D0300</DefaultData></Info>
                 <Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
               </Object>
               <Object>

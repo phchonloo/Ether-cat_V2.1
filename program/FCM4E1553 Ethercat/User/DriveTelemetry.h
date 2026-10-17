@@ -2,7 +2,14 @@
 #define DRIVE_TELEMETRY_H
 #include <stdint.h>
 
-/* Measurement validity, NOT a drive enable or safety signal. */
+/* User-selected MT9221CT-10BR5 nominal profile at VCC=5 V.
+ * Sensor gain is BEFORE the board's 2/3 divider; zeros are AT the ADC.
+ * These defaults are not calibration evidence for a fitted MT9220. */
+#define DT_DEFAULT_VREF_MV 3300U
+#define DT_DEFAULT_SENSITIVITY_UVA 200000U
+#define DT_DEFAULT_ZERO_UV 1666667U
+
+/* Measurement validity, NOT a calibration certificate, drive enable or safety signal. */
 #define DT_VALID_VOLTAGE 0x0001U
 #define DT_VALID_PHASES  0x0002U
 #define DT_VALID_CURRENT 0x0004U
@@ -12,7 +19,7 @@
 #define DT_ADC_STALE     0x0100U
 #define DT_ADC_ERROR     0x0200U
 #define DT_ADC_RAIL      0x0400U
-#define DT_CURRENT_UNCALIBRATED 0x0800U
+#define DT_CURRENT_UNCALIBRATED 0x0800U /* gain=0: conversion disabled/unconfigured */
 #define DT_RATED_UNSET   0x1000U
 #define DT_INVALID_I16 (-32767 - 1)
 #define DT_INVALID_I32 (-2147483647L - 1L)

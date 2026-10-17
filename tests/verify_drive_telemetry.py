@@ -1,6 +1,7 @@
 """Run telemetry and CoE/PDO boundary tests on the compiled ARM image.
 
-Synthetic ADC/gain values are test stimuli, NOT MT9220 calibration evidence.
+Synthetic ADC/gain values verify the selected MT9221 nominal profile and math,
+NOT calibration evidence or proof of compatibility for a fitted MT9220.
 No physical motor, analog accuracy, timing or EtherCAT certification is implied.
 """
 from pathlib import Path
@@ -73,7 +74,7 @@ def test(name, fn):
 
 
 def startup(f):
-    assert value(f, 'status') & 0x1907 == 0x1900
+    assert value(f, 'status') & 0x1907 == 0x1100
     assert value(f, 'busVoltageMv') == 0xffffffff
     assert sdo(f, 0x6079)[0] == 0x18
     assert sdo(f, 0x6077, size=2)[0] == 0x0d
@@ -83,6 +84,7 @@ test('startup never advertises fabricated current, voltage, torque or bus curren
 
 
 def voltage(f):
+    assert sdo(f, 0x2011, 0, write=True)[0] == 0
     frame(f)
     expected = (584 * 3300 * 51 + 2047) // 4095
     assert value(f, 'status') & 7 == 1
@@ -90,7 +92,68 @@ def voltage(f):
     assert sdo(f, 0x2065, size=2) == (0, (expected + 50) // 100)
     assert sdo(f, 0x6078, size=2)[0] == 0x18
     assert value(f, 'rawA') == 2068 and value(f, 'rawBus') == 584
-test('PE12 51:1 voltage scaling works without guessing current sensitivity', voltage)
+    assert value(f, 'status') & 0x0800
+test('PE12 51:1 voltage scaling still works with current conversion disabled', voltage)
+
+
+def nominal_profile(f):
+    assert sdo(f, 0x2010) == (0, 3300)
+    assert sdo(f, 0x2011) == (0, 200000)
+    assert sdo(f, 0x2012) == sdo(f, 0x2013) == (0, 1666667)
+    assert sdo(f, 0x6075) == (0, 0)  # do NOT use sensor full scale as motor rating
+    for n, (a_ma, b_ma) in enumerate(((0, 0), (1000, -1000), (9000, -9000)), 1):
+        def raw(ma):
+            return round((2.5 + ma / 1000 * 0.2) * (2 / 3) / 3.3 * 4095)
+        frame(f, cycle=144000 * n, a=raw(a_ma), b=raw(b_ma))
+        for index, expected in ((0x2003, a_ma), (0x2004, b_ma)):
+            result, measured = sdo(f, index)
+            assert result == 0
+            measured = struct.unpack('<i', struct.pack('<I', measured))[0]
+            assert abs(measured - expected) <= 4, (index, expected, measured)
+        assert value(f, 'status') & 0x1807 == 0x1003
+        assert sdo(f, 0x2064, size=2)[0] == 0
+        assert sdo(f, 0x6078, size=2)[0] == 0x18
+    # ADC is not at a rail, but the selected +/-10 A model is exceeded.
+    frame(f, cycle=576000, a=round((2.5 + 10.5 * 0.2) * (2 / 3) / 3.3 * 4095))
+    assert value(f, 'status') & 0x0407 == 0x0401
+    assert sdo(f, 0x2003)[0] == 0x18
+    assert value(f, 'currentMa') == 0x8000
+test('MT9221 defaults convert zero and signed currents; motor rating remains unset', nominal_profile)
+
+
+def nominal_pdo(f):
+    # A master only needs to provide the motor reference, not rewrite the gain.
+    assert sdo(f, 0x6075, 2000, write=True)[0] == 0
+    frame(f, a=2234, b=1903)  # nominal approximately +1 A and -1 A
+    f.write('sTxPDOassign', 0x1a03, 2, offset=2)
+    assert f.call('APPL_GenerateMapping', f.data + 128, f.data + 132) == 0
+    f.call('APPL_InputMapping', f.data)
+    pdo = bytes(f.uc.mem_read(f.data, 42))
+    assert struct.unpack_from('<H', pdo, 12)[0] & 0x1807 == 7
+    assert abs(struct.unpack_from('<i', pdo, 20)[0] - 1000) <= 4
+    assert abs(struct.unpack_from('<i', pdo, 24)[0] + 1000) <= 4
+    assert abs(struct.unpack_from('<h', pdo, 14)[0] - 707) <= 3
+test('default sensor profile reaches real TxPDO packing after setting motor reference', nominal_pdo)
+
+
+def supplied_calibration(f):
+    # Example manually supplied corrections for VCC=4.9 V, VDDA=3.25 V,
+    # including a separate +5 mV ADC-pin zero offset for phase B.
+    for index, val in ((0x2010, 3250), (0x2011, 196000),
+                       (0x2012, 1633333), (0x2013, 1638333)):
+        assert sdo(f, index, val, write=True)[0] == 0
+    def raw(ma, zero):
+        return round((zero + ma * 196 * 2 / 3) / 3250000 * 4095)
+    frame(f, a=raw(2000, 1633333), b=raw(-2000, 1638333))
+    assert abs(value(f, 'phaseAMa') - 2000) <= 4
+    measured_b = struct.unpack('<i', struct.pack('<I', value(f, 'phaseBMa')))[0]
+    assert abs(measured_b + 2000) <= 4
+    f.call('DriveTelemetry_Init')
+    for index, val in ((0x2010, 3300), (0x2011, 200000),
+                       (0x2012, 1666667), (0x2013, 1666667), (0x6075, 0)):
+        assert sdo(f, index) == (0, val)
+    assert value(f, 'status') & 0x1907 == 0x1100
+test('manual gain/VDDA/independent-zero corrections work and reset restores nominal profile', supplied_calibration)
 
 
 def currents(f):
