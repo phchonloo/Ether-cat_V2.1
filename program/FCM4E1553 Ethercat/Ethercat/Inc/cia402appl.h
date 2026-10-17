@@ -664,6 +664,7 @@ TCiA402Axis, *pTCiA402Axis;
 #ifdef _CiA402_
 UINT8 WriteMotionParameter(UINT16 index, UINT8 subindex, UINT32 dataSize,
                            UINT16 MBXMEM *pData, UINT8 bCompleteAccess);
+#include "DriveTelemetryObjects.h"
 OBJCONST TSDOINFOENTRYDESC OBJMEM sEntryDesc0x2000 =
     {DEFTYPE_UNSIGNED16, 16, ACCESS_READ | ACCESS_WRITE_PREOP};
 OBJCONST UCHAR OBJMEM aName0x2000[] = "Motion units (0=rpm, 1=count/s)";
@@ -1209,7 +1210,7 @@ CYCLIC_SYNC_VELOCITY_MODE,/*(INT16) ModeOfOperation 0x6060*/
 CYCLIC_SYNC_VELOCITY_MODE,/*(INT16) Mode Of Operation Display 0x6061*/
 0x0,/*(INT32) Position Actual Value 0x6064*/
 0x0,/*(INT32) Velocity Actual Value 0x606C*/
-0x0,/*(INT16) Torque Actual Value 0x6077*/
+DT_INVALID_I16,/* 0x6077: no measured torque on this open-loop board */
 0x0,/*(INT32) Target Position 0x607A*/
 {2,0x88CA6C00,0x77359400},/*TOBJ607D Software Position Limit (minLimit: -2000000000 / maxLimit: 2000000000)*/
 100,/*(UINT32) Profile Velocity 0x6081, rpm*/
@@ -1234,7 +1235,8 @@ CYCLIC_SYNC_VELOCITY_MODE,/*(INT16) Mode Of Operation Display 0x6061*/
  */
 PROTO TOBJECT    OBJMEM ApplicationObjDic[]
 #ifdef _CiA402_
-= {/* Object 0x1C12 */
+= {DRIVE_TELEMETRY_OD_ENTRIES,
+   /* Object 0x1C12 */
    {NULL,NULL, 0x1C12, {DEFTYPE_UNSIGNED16, MAX_AXES | (OBJCODE_ARR << 8)}, asPDOAssignEntryDesc, aName0x1C12, &sRxPDOassign, NULL, NULL, 0x0000 },
    /* Object 0x1C13 */
    {NULL,NULL, 0x1C13, {DEFTYPE_UNSIGNED16, MAX_AXES | (OBJCODE_ARR << 8)}, asPDOAssignEntryDesc, aName0x1C13, &sTxPDOassign, NULL, NULL, 0x0000 },
@@ -1294,7 +1296,7 @@ PROTO TOBJECT    OBJMEM DefCiA402AxisObjDic[]
    /* Object 0x606C */
    {NULL,NULL, 0x606C, {DEFTYPE_INTEGER32 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x606C, aName0x606C, NULL, NULL, NULL, 0x0000 },
    /* Object 0x6077 */
-   {NULL,NULL, 0x6077, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6077, aName0x6077, NULL, NULL, NULL, 0x0000 },
+   {NULL,NULL, 0x6077, {DEFTYPE_INTEGER16 , 0 | (OBJCODE_VAR << 8)}, &sEntryDesc0x6077, aName0x6077, NULL, ReadDriveTelemetry, NULL, 0x0000 },
    /* Object 0x607D */
    {NULL,NULL, 0x607D, {DEFTYPE_INTEGER32 , 2 | (OBJCODE_ARR << 8)}, asEntryDesc0x607D, aName0x607D, NULL, NULL, NULL, 0x0000 },
    /* Object 0x607A */

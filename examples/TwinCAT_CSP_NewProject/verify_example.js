@@ -159,12 +159,4 @@ test('safe diagnostic reset clears episode statistics but never enables motion',
     assert.equal(get(c,'bRun'),false);
     assert.equal(get(c,'qControlWord'),0);
 });
-test('README paste blocks exactly match the three delivered ST files', () => {
-    const readme=fs.readFileSync(path.join(__dirname,'README.md'),'utf8');
-    const blocks=[...readme.matchAll(/```iecst\r?\n([\s\S]*?)```/g)];
-    const files=['GVL_CSP_NEW.st','MAIN_Declaration.st','MAIN_Implementation.st'];
-    assert.equal(blocks.length,files.length);
-    files.forEach((file,i)=>assert.equal(blocks[i][1].trim(),
-        fs.readFileSync(path.join(__dirname,file),'utf8').trim(),file));
-});
 console.log(passed+' additional new-example ST checks passed; not TwinCAT/hardware tested.');

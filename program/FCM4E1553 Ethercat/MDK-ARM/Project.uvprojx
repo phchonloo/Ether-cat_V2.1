@@ -430,6 +430,11 @@
               <FilePath>..\User\QSPI.c</FilePath>
             </File>
             <File>
+              <FileName>DriveTelemetry.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\DriveTelemetry.c</FilePath>
+            </File>
+            <File>
               <FileName>AdcInit.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\AdcInit.c</FilePath>

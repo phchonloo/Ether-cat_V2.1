@@ -600,6 +600,72 @@
                   </Flags>
                 </SubItem>
               </DataType>
+              <DataType>
+                <Name>DT1600_FCM</Name><BitSize>176</BitSize>
+                <SubItem><SubIdx>0</SubIdx><Name>Number of entries</Name><Type>USINT</Type><BitSize>8</BitSize><BitOffs>0</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>1</SubIdx><Name>Mapping 1</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>16</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>2</SubIdx><Name>Mapping 2</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>48</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>3</SubIdx><Name>Mapping 3</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>80</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>4</SubIdx><Name>Mapping 4</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>112</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>5</SubIdx><Name>Mapping 5</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>144</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT1601_FCM</Name><BitSize>112</BitSize>
+                <SubItem><SubIdx>0</SubIdx><Name>Number of entries</Name><Type>USINT</Type><BitSize>8</BitSize><BitOffs>0</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>1</SubIdx><Name>Mapping 1</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>16</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>2</SubIdx><Name>Mapping 2</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>48</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>3</SubIdx><Name>Mapping 3</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>80</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT1602_FCM</Name><BitSize>112</BitSize>
+                <SubItem><SubIdx>0</SubIdx><Name>Number of entries</Name><Type>USINT</Type><BitSize>8</BitSize><BitOffs>0</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>1</SubIdx><Name>Mapping 1</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>16</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>2</SubIdx><Name>Mapping 2</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>48</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>3</SubIdx><Name>Mapping 3</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>80</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT1A00_FCM</Name><BitSize>176</BitSize>
+                <SubItem><SubIdx>0</SubIdx><Name>Number of entries</Name><Type>USINT</Type><BitSize>8</BitSize><BitOffs>0</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>1</SubIdx><Name>Mapping 1</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>16</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>2</SubIdx><Name>Mapping 2</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>48</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>3</SubIdx><Name>Mapping 3</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>80</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>4</SubIdx><Name>Mapping 4</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>112</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>5</SubIdx><Name>Mapping 5</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>144</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT1A01_FCM</Name><BitSize>112</BitSize>
+                <SubItem><SubIdx>0</SubIdx><Name>Number of entries</Name><Type>USINT</Type><BitSize>8</BitSize><BitOffs>0</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>1</SubIdx><Name>Mapping 1</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>16</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>2</SubIdx><Name>Mapping 2</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>48</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>3</SubIdx><Name>Mapping 3</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>80</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT1A02_FCM</Name><BitSize>176</BitSize>
+                <SubItem><SubIdx>0</SubIdx><Name>Number of entries</Name><Type>USINT</Type><BitSize>8</BitSize><BitOffs>0</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>1</SubIdx><Name>Mapping 1</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>16</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>2</SubIdx><Name>Mapping 2</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>48</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>3</SubIdx><Name>Mapping 3</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>80</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>4</SubIdx><Name>Mapping 4</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>112</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+                <SubItem><SubIdx>5</SubIdx><Name>Mapping 5</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>144</BitOffs><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags></SubItem>
+              </DataType>
+              <DataType>
+                <Name>DT1A03_FCM</Name><BitSize>464</BitSize>
+                <SubItem><SubIdx>0</SubIdx><Name>Number of entries</Name><Type>USINT</Type><BitSize>8</BitSize><BitOffs>0</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>1</SubIdx><Name>Mapping 1</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>16</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>2</SubIdx><Name>Mapping 2</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>48</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>3</SubIdx><Name>Mapping 3</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>80</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>4</SubIdx><Name>Mapping 4</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>112</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>5</SubIdx><Name>Mapping 5</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>144</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>6</SubIdx><Name>Mapping 6</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>176</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>7</SubIdx><Name>Mapping 7</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>208</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>8</SubIdx><Name>Mapping 8</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>240</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>9</SubIdx><Name>Mapping 9</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>272</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>10</SubIdx><Name>Mapping 10</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>304</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>11</SubIdx><Name>Mapping 11</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>336</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>12</SubIdx><Name>Mapping 12</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>368</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>13</SubIdx><Name>Mapping 13</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>400</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+                <SubItem><SubIdx>14</SubIdx><Name>Mapping 14</Name><Type>UDINT</Type><BitSize>32</BitSize><BitOffs>432</BitOffs><Flags><Access>ro</Access></Flags></SubItem>
+              </DataType>
             </DataTypes>
             <Objects>
               <Object>
@@ -1021,7 +1087,7 @@
               </Object>
               <Object>
                 <Index>#x6077</Index>
-                <Name>Torque actual value</Name>
+                <Name>Torque actual value (unavailable; see 0x2001)</Name>
                 <Type>INT</Type>
                 <BitSize>16</BitSize>
                 <Flags>
@@ -1136,6 +1202,196 @@
                   <PdoMapping>t</PdoMapping>
                 </Flags>
               </Object>
+              <Object>
+                <Index>#x2001</Index><Name>Telemetry validity and fault bits</Name>
+                <Type>UINT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2002</Index><Name>Bus current mA (not fitted; invalid)</Name>
+                <Type>DINT</Type><BitSize>32</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2003</Index><Name>Phase A current mA</Name>
+                <Type>DINT</Type><BitSize>32</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2004</Index><Name>Phase B current mA</Name>
+                <Type>DINT</Type><BitSize>32</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2005</Index><Name>ADC2 raw bus voltage</Name>
+                <Type>UINT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2006</Index><Name>ADC0 raw phase A</Name>
+                <Type>UINT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2007</Index><Name>ADC1 raw phase B</Name>
+                <Type>UINT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2008</Index><Name>ADC snapshot sequence</Name>
+                <Type>UDINT</Type><BitSize>32</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2010</Index><Name>ADC reference mV (nominal 3300)</Name>
+                <Type>UDINT</Type><BitSize>32</BitSize>
+                <Info><DefaultData>E40C0000</DefaultData></Info>
+                <Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x2011</Index><Name>Sensor sensitivity uV per A (0=unconfirmed)</Name>
+                <Type>UDINT</Type><BitSize>32</BitSize>
+                <Info><DefaultData>00000000</DefaultData></Info>
+                <Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x2012</Index><Name>Phase A zero voltage at ADC pin uV</Name>
+                <Type>UDINT</Type><BitSize>32</BitSize>
+                <Info><DefaultData>6B6E1900</DefaultData></Info>
+                <Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x2013</Index><Name>Phase B zero voltage at ADC pin uV</Name>
+                <Type>UDINT</Type><BitSize>32</BitSize>
+                <Info><DefaultData>6B6E1900</DefaultData></Info>
+                <Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x2064</Index><Name>Current vector magnitude mA (FCM units)</Name>
+                <Type>INT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x2065</Index><Name>Bus voltage 0.1V (FCM units)</Name>
+                <Type>UINT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x206D</Index><Name>CiA402 statusword mirror (FCM definition)</Name>
+                <Type>UINT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x206E</Index><Name>STN245M board version (0x0102)</Name>
+                <Type>UINT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x206F</Index><Name>Telemetry interface version (0x0100)</Name>
+                <Type>UINT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x6075</Index><Name>Motor rated current mA (scaling only; 0=unset)</Name>
+                <Type>UDINT</Type><BitSize>32</BitSize>
+                <Info><DefaultData>00000000</DefaultData></Info>
+                <Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x6078</Index><Name>Current magnitude in 0.001 of rated current</Name>
+                <Type>INT</Type><BitSize>16</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x6079</Index><Name>DC link circuit voltage mV</Name>
+                <Type>UDINT</Type><BitSize>32</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x60F4</Index><Name>Command minus executed position (no encoder)</Name>
+                <Type>DINT</Type><BitSize>32</BitSize>
+                <Flags><Access>ro</Access><PdoMapping>t</PdoMapping></Flags>
+              </Object>
+              <Object>
+                <Index>#x1600</Index><Name>RxPDO 1600</Name>
+                <Type>DT1600_FCM</Type><BitSize>176</BitSize>
+                <Info><SubItem><Name>Number of entries</Name><Info><DefaultData>05</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 1</Name><Info><DefaultData>10004060</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 2</Name><Info><DefaultData>20007A60</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 3</Name><Info><DefaultData>2000FF60</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 4</Name><Info><DefaultData>08006060</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 5</Name><Info><DefaultData>08000000</DefaultData></Info></SubItem>
+                </Info><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x1601</Index><Name>RxPDO 1601</Name>
+                <Type>DT1601_FCM</Type><BitSize>112</BitSize>
+                <Info><SubItem><Name>Number of entries</Name><Info><DefaultData>03</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 1</Name><Info><DefaultData>10004060</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 2</Name><Info><DefaultData>20007A60</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 3</Name><Info><DefaultData>10000000</DefaultData></Info></SubItem>
+                </Info><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x1602</Index><Name>RxPDO 1602</Name>
+                <Type>DT1602_FCM</Type><BitSize>112</BitSize>
+                <Info><SubItem><Name>Number of entries</Name><Info><DefaultData>03</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 1</Name><Info><DefaultData>10004060</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 2</Name><Info><DefaultData>2000FF60</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 3</Name><Info><DefaultData>10000000</DefaultData></Info></SubItem>
+                </Info><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x1A00</Index><Name>TxPDO 1A00</Name>
+                <Type>DT1A00_FCM</Type><BitSize>176</BitSize>
+                <Info><SubItem><Name>Number of entries</Name><Info><DefaultData>05</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 1</Name><Info><DefaultData>10004160</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 2</Name><Info><DefaultData>20006460</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 3</Name><Info><DefaultData>20006C60</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 4</Name><Info><DefaultData>08006160</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 5</Name><Info><DefaultData>08000000</DefaultData></Info></SubItem>
+                </Info><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x1A01</Index><Name>TxPDO 1A01</Name>
+                <Type>DT1A01_FCM</Type><BitSize>112</BitSize>
+                <Info><SubItem><Name>Number of entries</Name><Info><DefaultData>03</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 1</Name><Info><DefaultData>10004160</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 2</Name><Info><DefaultData>20006460</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 3</Name><Info><DefaultData>10000000</DefaultData></Info></SubItem>
+                </Info><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x1A02</Index><Name>TxPDO 1A02</Name>
+                <Type>DT1A02_FCM</Type><BitSize>176</BitSize>
+                <Info><SubItem><Name>Number of entries</Name><Info><DefaultData>05</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 1</Name><Info><DefaultData>10004160</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 2</Name><Info><DefaultData>20006460</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 3</Name><Info><DefaultData>20006C60</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 4</Name><Info><DefaultData>08006160</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 5</Name><Info><DefaultData>08000000</DefaultData></Info></SubItem>
+                </Info><Flags><Access WriteRestrictions="PreOP">rw</Access></Flags>
+              </Object>
+              <Object>
+                <Index>#x1A03</Index><Name>TxPDO 1A03</Name>
+                <Type>DT1A03_FCM</Type><BitSize>464</BitSize>
+                <Info><SubItem><Name>Number of entries</Name><Info><DefaultData>0E</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 1</Name><Info><DefaultData>10004160</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 2</Name><Info><DefaultData>20006460</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 3</Name><Info><DefaultData>20006C60</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 4</Name><Info><DefaultData>08006160</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 5</Name><Info><DefaultData>08000000</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 6</Name><Info><DefaultData>10000120</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 7</Name><Info><DefaultData>10007860</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 8</Name><Info><DefaultData>20007960</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 9</Name><Info><DefaultData>20000320</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 10</Name><Info><DefaultData>20000420</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 11</Name><Info><DefaultData>20000220</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 12</Name><Info><DefaultData>10007760</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 13</Name><Info><DefaultData>2000F460</DefaultData></Info></SubItem>
+                  <SubItem><Name>Mapping 14</Name><Info><DefaultData>20000820</DefaultData></Info></SubItem>
+                </Info><Flags><Access>ro</Access></Flags>
+              </Object>
             </Objects>
           </Dictionary>
         </Profile>
@@ -1227,6 +1483,24 @@
             <SubIndex>0</SubIndex>
             <BitLen>8</BitLen>
           </Entry>
+        </TxPdo>
+        <!-- Optional replacement of 0x1A00, not assigned by default: 42 bytes. -->
+        <TxPdo Fixed="true">
+          <Index>#x1A03</Index><Name>Inputs with measurement validity</Name>
+          <Entry><Index>#x6041</Index><SubIndex>0</SubIndex><BitLen>16</BitLen><Name>Status Word</Name><DataType>UINT</DataType></Entry>
+          <Entry><Index>#x6064</Index><SubIndex>0</SubIndex><BitLen>32</BitLen><Name>ActualPosition</Name><DataType>DINT</DataType></Entry>
+          <Entry><Index>#x606C</Index><SubIndex>0</SubIndex><BitLen>32</BitLen><Name>ActualVelocity</Name><DataType>DINT</DataType></Entry>
+          <Entry><Index>#x6061</Index><SubIndex>0</SubIndex><BitLen>8</BitLen><Name>ModeOfOperationDisplay</Name><DataType>SINT</DataType></Entry>
+          <Entry><Index>0</Index><SubIndex>0</SubIndex><BitLen>8</BitLen></Entry>
+          <Entry><Index>#x2001</Index><SubIndex>0</SubIndex><BitLen>16</BitLen><Name>Telemetry validity and fault bits</Name><DataType>UINT</DataType></Entry>
+          <Entry><Index>#x6078</Index><SubIndex>0</SubIndex><BitLen>16</BitLen><Name>Current magnitude in 0.001 of rated current</Name><DataType>INT</DataType></Entry>
+          <Entry><Index>#x6079</Index><SubIndex>0</SubIndex><BitLen>32</BitLen><Name>DC link circuit voltage mV</Name><DataType>UDINT</DataType></Entry>
+          <Entry><Index>#x2003</Index><SubIndex>0</SubIndex><BitLen>32</BitLen><Name>Phase A current mA</Name><DataType>DINT</DataType></Entry>
+          <Entry><Index>#x2004</Index><SubIndex>0</SubIndex><BitLen>32</BitLen><Name>Phase B current mA</Name><DataType>DINT</DataType></Entry>
+          <Entry><Index>#x2002</Index><SubIndex>0</SubIndex><BitLen>32</BitLen><Name>Bus current mA (not fitted; invalid)</Name><DataType>DINT</DataType></Entry>
+          <Entry><Index>#x6077</Index><SubIndex>0</SubIndex><BitLen>16</BitLen><Name>Torque unavailable - check 0x2001</Name><DataType>INT</DataType></Entry>
+          <Entry><Index>#x60F4</Index><SubIndex>0</SubIndex><BitLen>32</BitLen><Name>Command minus executed position (no encoder)</Name><DataType>DINT</DataType></Entry>
+          <Entry><Index>#x2008</Index><SubIndex>0</SubIndex><BitLen>32</BitLen><Name>ADC snapshot sequence</Name><DataType>UDINT</DataType></Entry>
         </TxPdo>
         <Mailbox DataLinkLayer="true">
           <CoE SdoInfo="true" PdoAssign="true" PdoConfig="true" CompleteAccess="true" SegmentedSdo="true"/>

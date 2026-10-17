@@ -1,6 +1,7 @@
 #include "mcuinit.h"
 #include "EthercatMotorControl.h"
 #include "SciInit.h"
+#include "DriveTelemetry.h"
 
 static void eeprom_self_test_report(void);
 static void motor_control_irq_priority_config(void);
@@ -28,6 +29,7 @@ int main(void)
     modbus_init(MODBUS_DEFAULT_SLAVE_ADDR,
                 MODBUS_DEFAULT_BAUDRATE);
 
+    DriveTelemetry_Init();
     dma_config();
     adc_config();
 
@@ -67,6 +69,7 @@ int main(void)
     {
         MainLoop();
         EthercatMotorControl_Update();
+        DriveTelemetry_Update();
         modbus_process();
         eeprom_console_process();
     }

@@ -67,6 +67,7 @@ V4.30 : create file (state machine; handling state transition options; input fee
 #undef _CiA402_
 #include "EthercatMotorControl.h"
 #include "Errorhadle.h"
+#include "DriveTelemetry.h"
 
 
 /*--------------------------------------------------------------------------------------
@@ -231,6 +232,10 @@ static UINT16 CiA402_GetPdoSizeBits(UINT16 pdoIndex, BOOL txPdo, UINT16 *pSizeBi
     }
 
     entryCount = *((UINT16 *)pPdo->pVarPtr);
+    if (entryCount > (pPdo->ObjDesc.ObjFlags & OBJFLAGS_MAXSUBINDEXMASK))
+    {
+        return txPdo ? ALSTATUSCODE_INVALIDINPUTMAPPING : ALSTATUSCODE_INVALIDOUTPUTMAPPING;
+    }
     for (entry = 1U; entry <= entryCount; entry++)
     {
         UINT32 mapping;
@@ -297,7 +302,7 @@ static UINT16 CiA402_GetPdoSizeBits(UINT16 pdoIndex, BOOL txPdo, UINT16 *pSizeBi
  *                                    by every mapped entry including padding.
  */
 static void CiA402_CopyPdo(UINT16 pdoIndex, UINT8 *pProcessData, BOOL toProcessData,
-                           UINT16 *pProcessOffsetBytes)
+                           UINT16 *pProcessOffsetBytes, const DriveTelemetryValues *telemetry)
 {
     OBJCONST TOBJECT OBJMEM *pPdo;
     UINT16 entryCount;
@@ -342,6 +347,12 @@ static void CiA402_CopyPdo(UINT16 pdoIndex, UINT8 *pProcessData, BOOL toProcessD
                               + (OBJ_GetEntryOffset(subIndex, pObject) >> 3U);
                 if (toProcessData)
                 {
+                    if ((telemetry != NULL) &&
+                        ((uintptr_t)pObjectData >= (uintptr_t)&gDriveTelemetry) &&
+                        ((uintptr_t)pObjectData + byteLength <=
+                         (uintptr_t)&gDriveTelemetry + sizeof(gDriveTelemetry)))
+                        pObjectData = (UINT8 *)telemetry +
+                            ((uintptr_t)pObjectData - (uintptr_t)&gDriveTelemetry);
                     MEMCPY(&pProcessData[*pProcessOffsetBytes], pObjectData, byteLength);
                 }
                 else
@@ -1810,6 +1821,8 @@ void APPL_InputMapping(UINT16* pData)
     UINT16 j = 0;
     UINT16 processOffsetBytes = 0U;
     UINT8 *pTmpData = (UINT8 *)pData;
+    DriveTelemetryValues telemetry;
+    DriveTelemetry_GetSnapshot(&telemetry);
 
     /*
      * TxPDO方向：MCU -> ESC -> 主站。
@@ -1818,7 +1831,7 @@ void APPL_InputMapping(UINT16* pData)
     for (j = 0; j < sTxPDOassign.u16SubIndex0; j++)
     {
         CiA402_CopyPdo(sTxPDOassign.aEntries[j], pTmpData, TRUE,
-                       &processOffsetBytes);
+                       &processOffsetBytes, &telemetry);
     }
 }
 
@@ -1843,7 +1856,7 @@ void APPL_OutputMapping(UINT16* pData)
     for (j = 0; j < sRxPDOassign.u16SubIndex0; j++)
     {
         CiA402_CopyPdo(sRxPDOassign.aEntries[j], pTmpData, FALSE,
-                       &processOffsetBytes);
+                       &processOffsetBytes, NULL);
     }
 
     /* In SM-sync mode a new RxPDO, not a mailbox/PDI interrupt, is the

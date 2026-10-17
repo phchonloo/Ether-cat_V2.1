@@ -1,4 +1,5 @@
 #include "AdcInit.h"
+#include "DriveTelemetry.h"
 
 u32 adc_value[10]={0,0,0,0,0,0,0,0,0,0};
 /**
@@ -127,12 +128,13 @@ void DMA2_Channel1_IRQHandler(void)
     if (DMA_GetIntStatus(DMA2_INT_ERR1, DMA2) != RESET)
     {
         DMA_ClrIntPendingBit(DMA2_INT_GLB1, DMA2);
+        DriveTelemetry_AdcError();
         return;
     }
 
     if (DMA_GetIntStatus(DMA2_INT_TXC1, DMA2) != RESET)
     {
         DMA_ClrIntPendingBit(DMA2_INT_GLB1, DMA2);
-        //GPIOC->POD ^= GPIO_PIN_10;
+        DriveTelemetry_AdcComplete();
     }
 }

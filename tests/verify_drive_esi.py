@@ -35,3 +35,55 @@ for tag, expected_indices in (
     assert sum(int(e.findtext('BitLen')) for e in entries) == 96
 print('PASS ESI XML syntax, unique objects, types/defaults/access, own identity, '
       'unchanged 12-byte PDOs and excluded hardware features (not XSD/CTT validation).')
+
+telemetry_types = {
+    0x2001: ('UINT',16), 0x2002: ('DINT',32), 0x2003: ('DINT',32),
+    0x2004: ('DINT',32), 0x2005: ('UINT',16), 0x2006: ('UINT',16),
+    0x2007: ('UINT',16), 0x2008: ('UDINT',32), 0x2064: ('INT',16),
+    0x2065: ('UINT',16), 0x206D: ('UINT',16), 0x206E: ('UINT',16),
+    0x206F: ('UINT',16), 0x6078: ('INT',16), 0x6079: ('UDINT',32),
+    0x60F4: ('DINT',32),
+}
+for index, (typ, bits) in telemetry_types.items():
+    o = by_index[index]
+    assert (o.findtext('Type'), int(o.findtext('BitSize')),
+            o.findtext('Flags/Access'), o.findtext('Flags/PdoMapping')) == (typ, bits, 'ro', 't')
+for index, default in ((0x2010,3300), (0x2011,0), (0x2012,1666667),
+                       (0x2013,1666667), (0x6075,0)):
+    o = by_index[index]
+    assert o.findtext('Type') == 'UDINT' and o.findtext('BitSize') == '32'
+    assert o.findtext('Flags/Access') == 'rw'
+    assert o.find('Flags/Access').get('WriteRestrictions') == 'PreOP'
+    assert o.find('Flags/PdoMapping') is None
+    assert int.from_bytes(bytes.fromhex(o.findtext('Info/DefaultData')), 'little') == default
+
+def index_of(e):
+    return int(e.findtext('Index').replace('#x',''), 16)
+
+types = {t.findtext('Name'): t for t in device.findall('.//Dictionary/DataTypes/DataType')}
+for index, count in ((0x1600,5),(0x1601,3),(0x1602,3),(0x1A00,5),
+                     (0x1A01,3),(0x1A02,5),(0x1A03,14)):
+    obj = by_index[index]
+    dt = types[obj.findtext('Type')]
+    assert int(dt.findtext('BitSize')) == 16 + count * 32
+    items = dt.findall('SubItem')
+    assert len(items) == count + 1
+    assert [int(s.findtext('BitOffs')) for s in items] == [0] + list(range(16,16 + count*32,32))
+    assert obj.findtext('Flags/Access') == ('ro' if index == 0x1A03 else 'rw')
+    assert int.from_bytes(bytes.fromhex(obj.findtext('Info/SubItem/Info/DefaultData')), 'little') == count
+
+optional = next(p for p in device.findall('TxPdo') if index_of(p) == 0x1A03)
+assert optional.get('Sm') is None  # only explicit assignment may change default process data
+entries = optional.findall('Entry')
+assert [index_of(e) for e in entries] == [0x6041,0x6064,0x606C,0x6061,0,
+    0x2001,0x6078,0x6079,0x2003,0x2004,0x2002,0x6077,0x60F4,0x2008]
+assert sum(int(e.findtext('BitLen')) for e in entries) == 42 * 8
+for e in entries:
+    index = index_of(e)
+    if index:
+        o = by_index[index]
+        assert o.findtext('Type') == e.findtext('DataType')
+        assert int(o.findtext('BitSize')) == int(e.findtext('BitLen'))
+        assert o.findtext('Flags/PdoMapping') == 't'
+assert 'unavailable' in by_index[0x6077].findtext('Name')
+print('PASS 21 added telemetry/config objects, 7 PDO records and optional 42-byte TxPDO.')
